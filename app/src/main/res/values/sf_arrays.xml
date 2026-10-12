@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sf_audio_buffer_names">
+        <item>Automatic (recommended)</item>
+        <item>50 ms</item>
+        <item>100 ms</item>
+        <item>200 ms</item>
+        <item>Like Moonlight (minimal, may crackle)</item>
+    </string-array>
+    <string-array name="sf_audio_buffer_values" translatable="false">
+        <item>auto</item>
+        <item>50</item>
+        <item>100</item>
+        <item>200</item>
+        <item>upstream</item>
+    </string-array>
+</resources>

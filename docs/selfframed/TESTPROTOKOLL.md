@@ -73,12 +73,24 @@ Gleiche Szene (z. B. Maus kreisen lassen, Video im Browser), 1600×1200, gleiche
 - [ ] E2 Beim nächsten regulären Release: App öffnen → Update-Dialog → Installieren → (einmalig „Aus dieser Quelle
       zulassen“) → Androids Bestätigung → neue Version läuft, Kopplung und Presets sind erhalten.
 
+## F. Ton
+
+- [ ] F1 Einstellungen → Ton (SelfFramed) → „Audio-Puffer“ steht auf „Automatisch (empfohlen)“.
+- [ ] F2 Leistungsanzeige an, 10 Minuten Musik oder Video am PC: Die Zeile „Ton: …“ ist sichtbar, „Aussetzer“ bleibt bei
+      0 oder steigt nur am Anfang, nichts knackst.
+- [ ] F3 Zum Vergleich „Wie Moonlight“: Das alte Verhalten ist wieder da. Danach zurück auf „Automatisch“.
+- [ ] F4 Das Ausgabegerät in der Zeile stimmt (Lautsprecher, Kopfhörer, Bluetooth oder USB).
+- [ ] F5 Bei einem Video wirkt der Ton nicht spürbar vor oder hinter dem Bild (E-Ink-Verzögerung beachten).
+- [ ] F6 (Debug-Build, optional) `adb shell am start -n com.selfframed.moonlight.debug/com.limelight.selfframed.audio.AudioBufferTestActivity`:
+      30 s Testton mit 80 ms Pause alle 5 s; „Aussetzer“ 0 bis 1.
+
 ## Ergebnisse
 
 | Datum | Version | Gerät/ROM | A | B | C | D | Notizen |
 |---|---|---|---|---|---|---|---|
 | 12.10.2026 | 12.2-sf.1 (Debug) | Emulator API 36, x86_64, SwiftShader | A1–A4 bestanden (automatisch), A5–A8 siehe unten | – | – | – | `tools/sf/verify-gpu-stage.py`: 7 Presets × 16 Graustufen pixelgenau gegen die Original-JS-Mathematik, maximale Abweichung 0. Alle Wechsel als Neuzeichnen eines stehenden Bildes (statischer Desktop). Einblendung sichtbar. Kein Stream möglich (kein Host im Emulator). |
 | 12.10.2026 | 12.2-sf.1 → 12.2-sf.2 (Release, Testserver) | Emulator API 36 | – | – | – | – | Update-Funktion durchgängig: Dialog, einmalige Erlaubnis, Download, Prüfungen, Bestätigung, installiert (versionCode 31502). Play Protect fragte einmal (ohne Scan installiert). Lehre: Pythons HTTP/1.0-Testserver bricht im Emulator große Downloads ab, deshalb ein Keep-Alive-Testserver. |
+| 12.10.2026 | 12.2-sf.3 (Debug) | Emulator API 36 | – | – | – | – | F6 bestanden: Die Wiedergabe startet nach dem Vorfüllen, Verzögerung 37–59 ms bei Ziel 60, 0 Aussetzer trotz 80 ms Pause alle 5 s, 2 Pakete ergänzt, Zeile „speaker, 48 kHz, normal path“. Ohne Audiogerät (`-no-audio`) legt Android keinen AudioTrack an; das ist eine Grenze des Emulators. Der Emulator puffert im Audiotreiber zusätzlich, die Aussetzerzahl ist deshalb nicht aufs Telefon übertragbar. |
 | 12.10.2026 | 12.2-sf.1 | Moto G100 | – | B2–B5 bestanden (Kürzel, Bedienfeld) | offen | offen | Martin: Kürzel „wunderbar“. Befunde: Maus im Bedienfeld nicht nutzbar (blieb eingefangen); Start-Hinweis bei jedem Stream störend. Beides in 12.2-sf.2 geändert. |
 
 Die automatische Prüfung (`python tools/sf/verify-gpu-stage.py <serial> <appId> <Ausgabeordner>`) deckt A1–A4 ab und

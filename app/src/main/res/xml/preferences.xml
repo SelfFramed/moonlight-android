@@ -34,6 +34,18 @@
             android:summary="@string/sf_summary_grading_hotkeys" />
     </PreferenceCategory>
 
+    <!-- [SelfFramed] Audio buffer against dropouts (docs/selfframed/BEDIENUNG.md) -->
+    <PreferenceCategory android:title="@string/sf_category_audio"
+        android:key="sf_category_audio">
+        <ListPreference
+            android:key="sf_audio_buffer"
+            android:title="@string/sf_title_audio_buffer"
+            android:summary="@string/sf_summary_audio_buffer"
+            android:entries="@array/sf_audio_buffer_names"
+            android:entryValues="@array/sf_audio_buffer_values"
+            android:defaultValue="auto" />
+    </PreferenceCategory>
+
     <!-- [SelfFramed] Self-update from the fork's GitHub releases (docs/selfframed/BEDIENUNG.md) -->
     <PreferenceCategory android:title="@string/sf_category_update"
         android:key="sf_category_update">

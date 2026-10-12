@@ -16,9 +16,9 @@
 .gitignore	2
 app/build.gradle	1
 app/src/main/AndroidManifest.xml	4
-app/src/main/java/com/limelight/Game.java	12
+app/src/main/java/com/limelight/Game.java	13
 app/src/main/java/com/limelight/binding/video/MediaCodecDecoderRenderer.java	4
-app/src/main/res/xml/preferences.xml	2
+app/src/main/res/xml/preferences.xml	3
 .gitattributes	1
 README.md	1
 app/src/main/java/com/limelight/PcView.java	1

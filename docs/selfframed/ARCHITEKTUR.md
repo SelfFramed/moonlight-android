@@ -119,6 +119,57 @@ Game.onDestroy ─▶ controller.onDestroy()  (speichert, gibt die Stufe frei, f
   FileProvider-Abhängigkeit). `UpdateStatusReceiver` zeigt Androids Bestätigung bzw. meldet Fehler.
 - Die Sicherheit hängt am Signaturschlüssel: Android installiert nur Updates mit demselben Zertifikat.
 
+## 5b. Ton (`selfframed/audio/`)
+
+Ausgangslage (Messung 12.10.2026, Martin: „das Audio laggt“, im offiziellen Moonlight wie im Fork): Der Host liefert
+sauber. Die UR44 läuft mit 48 kHz, Windows gibt alle 10 ms genau 10 ms Ton ab (Spitze 10,7 ms), und Sunshine kodiert Opus
+mit 48 kHz ohne Umrechnung. Das WLAN zum Telefon hat eine RTT von 2,7 ms im Median und 5,3 ms bei p99. Upstreams
+`AndroidAudioRenderer` ist auf kleinste Latenz gebaut:
+
+- 2 Pakete (10 ms) Puffer, Wiedergabe ab dem ersten Paket;
+- der Decoder-Thread läuft mit normaler Priorität;
+- sobald 40 ms warten, werden Pakete hart verworfen.
+
+Ein kurzer Hänger des Decoder-Threads, eine WLAN-Spitze oder auseinanderlaufende Uhren von PC und Telefon werden damit
+hörbar.
+
+- `SfAudio` (Einstieg für Game) wählt nach der Einstellung „Audio-Puffer“ (`sf_audio_buffer`: `auto`, `50`, `100`, `200`,
+  `upstream`) den Renderer und liefert die Zeile für die Leistungsanzeige. „Automatisch“ startet mit dem Ziel, mit dem
+  der letzte Stream endete (beim ersten Stream 60 ms). War der letzte Stream ohne Aussetzer, startet er 10 ms tiefer,
+  mindestens bei 40 ms.
+- `SfAudioRenderer` richtet den AudioTrack wie Upstream ein (`USAGE_GAME`, schneller Pfad, wenn die Ausgaberate passt
+  und keine Effekte gewünscht sind), aber mit bis zu 250 ms Kapazität. Die wirksame Größe (`setBufferSizeInFrames`) ist
+  das Ziel. Die Wiedergabe startet erst, wenn das Ziel gefüllt ist. Der Decoder-Thread läuft mit Audio-Priorität. Jede
+  Ausnahme schaltet auf Upstreams Verhalten zurück: schreiben, solange weniger als 40 ms warten.
+- `JitterBuffer` und `JitterPolicy` (reines Java) halten ein Paket zurück, damit Korrekturen überblendet werden können.
+  Verzögerung = Rahmen im Track + Pakete, die vor dem Decoder warten.
+  - Aussetzer (der Track lief leer): Das Ziel steigt um 20 ms, höchstens einmal pro Sekunde, bis 250 ms.
+  - Uhrendrift: Verlässt der gleitende Mittelwert (2 s) das Band „Ziel ± max(20 ms, Ziel/4)“, fällt ein Paket weg (MERGE)
+    oder kommt eins dazu (INSERT). Beides wird überblendet, höchstens viermal pro Sekunde.
+  - Rückstau nach einem langen Aussetzer (mehr als das Ziel wartet): Pakete werden übersprungen, bis noch ein Viertel des
+    Ziels wartet; dann wird überblendet angeschlossen.
+- `PcmBlend`: lineare Überblendung über ein Paket (5 ms), Einblenden nach einem Leerlauf.
+- Warum mehr Puffer hier nichts kostet: Das E-Ink-Bild erscheint ohnehin 100 bis 300 ms nach dem PC-Bild. Ton mit 60 bis
+  120 ms Puffer liegt näher am Bild als Upstreams 10 ms.
+
+Simulation (`JitterBufferSimTest`: echter Puffer gegen ein Zeitmodell Host → Netz → Decoder-Thread → Ausgabe, daneben
+ein Modell von Upstreams Renderer):
+
+| Szenario | SelfFramed (Automatisch) | Upstream-Modell |
+|---|---|---|
+| gemessene Werte (PC-Takt 10 ms, WLAN-Jitter 0–2 ms) | 0 Aussetzer | 0 Aussetzer |
+| Decoder-Thread hängt 10–40 ms, etwa 1/s | 0 | 81 Aussetzer, 215 verworfene Pakete in 110 s |
+| WLAN-Spitzen 30–90 ms, etwa 1/s | 0 (Ziel wächst auf 120 ms) | 205 Aussetzer, 1457 verworfen in 240 s |
+| Telefon-Uhr 200 ppm schneller, 10 min | 0; 20 Pakete überblendet ergänzt | 24 Aussetzer |
+| Telefon-Uhr 200 ppm langsamer, 10 min | 0; 19 Pakete überblendet gekürzt | 15 Pakete hart verworfen |
+| Ausgabe nimmt 20 ms am Stück (wie Bluetooth) | 0 | 0 |
+
+Unter den gemessenen Bedingungen ist auch Upstream fehlerfrei. Die Aussetzer am Gerät müssen also aus Hängern, Spitzen
+oder Drift kommen. Welche Ursache es ist, zeigt am Gerät die Zeile „Ton“ der Leistungsanzeige.
+
+Weitere Tests: `JitterPolicyTest` und `PcmBlendTest`. Debug-Builds enthalten außerdem `AudioBufferTestActivity`
+(`app/src/debug/`): Testton mit 80 ms Pause alle 5 s, Ausgabe im Bildschirm und im Log `SfAudioTest`.
+
 ## 6. Einhängepunkte in Upstream-Dateien
 
 Vollständige Liste mit Zweck: [PATCHES.md](PATCHES.md). Alle sind mit `[SelfFramed]` markiert;

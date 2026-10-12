@@ -12,7 +12,8 @@ Grundregeln:
 - Neuer Code kommt nach `app/src/main/java/com/limelight/selfframed/**`, Ressourcen heißen `sf_*`.
 - In Upstream-Dateien nur kurze Einhängepunkte; voll qualifizierte Klassennamen statt neuer Imports, damit
   Import-Blöcke konfliktfrei bleiben.
-- Upstream-Verhalten bleibt unverändert, wenn die Bildstufe in den Einstellungen aus ist (`sfGrading == null`).
+- Upstream-Verhalten bleibt unverändert, wenn die Bildstufe in den Einstellungen aus ist (`sfGrading == null`) und der
+  Audio-Puffer auf „Wie Moonlight“ steht (dann läuft Upstreams `AndroidAudioRenderer`).
 
 | # | Datei | Stelle | Absicht | Bei Konflikt |
 |---|---|---|---|---|
@@ -32,11 +33,12 @@ Grundregeln:
 | 14 | `Game.java` | `handleSpecialKeys`: `default` im Kombinations-`switch` | Bild-Kürzel erkennen und sofort ausführen; Rest der Kombination wie Upstream verschlucken | Upstream-Kürzel (Z, Q, C) haben Vorrang |
 | 15 | `Game.java` | Anfang `handleKeyDown` | offenes Bedienfeld bekommt Tasten zuerst | ganz oben, vor allem anderen |
 | 16 | `Game.java` | Anfang `handleKeyUp` | dito für Key-Up | ganz oben |
-| 17 | `Game.java` | `onPerfUpdate` | Zeile „Bildstufe: … ms/Bild“ an die Leistungsanzeige hängen | – |
+| 17 | `Game.java` | `onPerfUpdate` | Zeilen „Bildstufe: … ms/Bild“ und „Ton: …“ an die Leistungsanzeige hängen | – |
 | 18 | `Game.java` | Ende `onDestroy` | Presets speichern, Stufe freigeben (falls `cleanup()` nicht lief) | – |
-| 19 | `res/xml/preferences.xml` | erste `PreferenceCategory` `sf_category_grading`, danach `sf_category_update` | Einstellungen: Hauptschalter, Einblendung, Presets verwalten, Kürzel-Übersicht; Update-Suche | beide Kategorien oben halten |
+| 19 | `res/xml/preferences.xml` | erste `PreferenceCategory` `sf_category_grading`, danach `sf_category_audio` und `sf_category_update` | Einstellungen: Hauptschalter, Einblendung, Presets verwalten, Kürzel-Übersicht; Audio-Puffer; Update-Suche | alle drei Kategorien oben halten |
 | 20 | `AndroidManifest.xml` | zwei `<activity>` und ein `<receiver>` am Ende von `<application>`, `REQUEST_INSTALL_PACKAGES` bei den Berechtigungen | `GradingPresetsActivity` (nicht exportiert), `GradingTestPatternActivity` (exportiert, für `adb am start` im Gerätetest), `UpdateStatusReceiver` (Ergebnis der Installations-Sitzung) | – |
 | 23 | `Game.java` | `handleSpecialKeys`: `default` im `switch (specialKeyCode)` der Aktion „alle Modifikatoren oben“ | Ende einer Bild-Kürzel-Kombination melden; der Controller gibt dann (250 ms später) die Maus fürs Bedienfeld frei | muss in diesem Zweig bleiben, sonst hängen Modifikatoren am Host |
+| 24 | `Game.java` | `surfaceChanged`: erstes Argument von `conn.start(...)` | Audio-Renderer aus `SfAudio.createRenderer` (Jitter-Puffer; Upstreams `AndroidAudioRenderer` als Einstellung „Wie Moonlight“) | Upstreams Import von `AndroidAudioRenderer` bleibt stehen, auch wenn Game ihn nicht mehr direkt nutzt |
 | 22 | `PcView.java` | `onResume`, nach `UiHelper.showDecoderCrashDialog(this)` | Update-Prüfung auf dem Startbildschirm (gedrosselt, nie im Stream) bzw. nach der Erlaubnis „Aus dieser Quelle zulassen“ weitermachen | – |
 | 21 | `README.md` | Kasten ganz oben | Hinweis auf den Fork, Links zur Doku; Upstream-Text bleibt unverändert darunter | Kasten oben halten |
 
@@ -50,3 +52,6 @@ Grundregeln:
 - **Tastenbehandlung** (`handleSpecialKeys`, neue Upstream-Kürzel): Kollisionen mit `GradingHotkeys` prüfen. Upstream hat
   Vorrang, dann weicht das Bild-Kürzel aus, und `BEDIENUNG.md` wird angepasst.
 - **Surface-Lebenszyklus** (`surfaceChanged`/`surfaceDestroyed`, PiP, Mehrfenster): Reihenfolge der Punkte 10/11 halten.
+- **Ton** (`AndroidAudioRenderer`, Interface `AudioRenderer`, `conn.start`, in moonlight-common-c `AudioStream.c` und
+  `LiGetPendingAudioDuration`): Änderungen an Upstreams Renderer (Puffergröße, Low-Latency-Logik, Effekte) in
+  `SfAudioRenderer` nachziehen; `JitterBufferSimTest` neu bewerten.

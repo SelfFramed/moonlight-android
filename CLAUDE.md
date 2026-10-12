@@ -58,7 +58,11 @@ ihn: Martins Wünsche einbauen, Upstream-Releases übernehmen.
 
 ## Prüfen
 
-- JVM-Tests: `testNonRootDebugUnitTest` (Kurven gegen das Original-JS, LUT, Presets, Import).
+- JVM-Tests: `testNonRootDebugUnitTest` (Kurven gegen das Original-JS, LUT, Presets, Import, Audio-Puffer samt
+  Zeitsimulation `JitterBufferSimTest`).
+- Audio-Puffer ohne Stream (nur Debug-Build): `adb shell am start -n <appId>/com.limelight.selfframed.audio.AudioBufferTestActivity --ei amp 0`
+  (Log-Tag `SfAudioTest`). Im Emulator nur mit Audio und stummgeschaltet (`-no-audio` hat kein Ausgabegerät); `amp 0`
+  ist ein stummer Testton.
 - GPU-Stufe ohne Stream: `GradingTestPatternActivity` (Testbild); auf Emulator oder Gerät per
   `adb shell am start -n <appId>/com.limelight.selfframed.grading.GradingTestPatternActivity`.
 - Vor jeder Freigabe: `docs/selfframed/TESTPROTOKOLL.md` am echten Gerät. Ergebnisse dort eintragen; Ungeprüftes als

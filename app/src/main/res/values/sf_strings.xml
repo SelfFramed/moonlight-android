@@ -77,4 +77,20 @@
     <string name="sf_update_permission_message">To update itself, Moonlight E-Ink needs \"Allow from this source\" in the next screen. Switch it on and come back; the update then starts by itself.</string>
     <string name="sf_update_open_settings">Open settings</string>
     <string name="sf_update_signature_mismatch">The downloaded update is not signed with the key of this app; cancelled.</string>
+    <!-- Audio buffer (selfframed/audio) -->
+    <string name="sf_category_audio">Audio (SelfFramed)</string>
+    <string name="sf_title_audio_buffer">Audio buffer</string>
+    <string name="sf_summary_audio_buffer">%s. More buffer means fewer dropouts and slightly later sound.</string>
+    <string name="sf_audio_perf_line">Audio: %1$d ms (target %2$d) · dropouts %3$d · adjusted −%4$d/+%5$d · %6$s</string>
+    <string name="sf_audio_perf_upstream">Audio: like Moonlight (no buffer)</string>
+    <string name="sf_audio_out">%1$s, %2$s kHz, %3$s</string>
+    <string name="sf_audio_out_speaker">speaker</string>
+    <string name="sf_audio_out_wired">headphones</string>
+    <string name="sf_audio_out_bluetooth">Bluetooth</string>
+    <string name="sf_audio_out_usb">USB</string>
+    <string name="sf_audio_out_hdmi">HDMI/DP</string>
+    <string name="sf_audio_out_other">other output</string>
+    <string name="sf_audio_out_unknown">output unknown</string>
+    <string name="sf_audio_mode_fast">fast path</string>
+    <string name="sf_audio_mode_normal">normal path</string>
 </resources>

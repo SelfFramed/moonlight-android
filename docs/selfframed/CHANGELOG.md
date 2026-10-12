@@ -3,6 +3,20 @@
 Format: neueste Version oben. Upstream-Änderungen stehen im Upstream-Repo; hier nur Fork-Änderungen und welche
 Upstream-Version übernommen wurde.
 
+## 12.2-sf.3 (12.10.2026)
+
+Rückmeldung Martin (12.10.2026): Der Ton „laggt“, im offiziellen Moonlight wie im Fork.
+
+- Eigener Audio-Puffer statt Upstreams 10 ms. Die Wiedergabe startet mit 60 ms Vorrat, und der Puffer wächst nach
+  Aussetzern von selbst (bis 250 ms) und merkt sich den Wert. Gangunterschiede zwischen den Uhren von PC und Telefon
+  werden mit kurzen Überblendungen ausgeglichen statt mit harten Schnitten. Der Decoder-Thread läuft mit Audio-Priorität.
+- Neue Einstellung „Audio-Puffer“ (Kategorie „Ton (SelfFramed)“): Automatisch (Standard), 50, 100 oder 200 ms, oder „Wie
+  Moonlight“.
+- Leistungsanzeige: neue Zeile „Ton: …“ mit Verzögerung, Aussetzern, Ausgleich und Ausgabegerät.
+- Ursachenanalyse: Host (UR44, 48 kHz, gleichmäßiger 10-ms-Takt) und WLAN (RTT im Median 2,7 ms) sind sauber. Upstreams
+  Renderer verträgt aber keinen kurzen Hänger des Telefons, keine WLAN-Spitze und keine Uhrendrift; Simulation und
+  Zahlen in `ARCHITEKTUR.md` §5b.
+
 ## 12.2-sf.2 (12.10.2026)
 
 Erste Rückmeldung vom Gerät (Martin, 12.10.2026: Kürzel und Bedienfeld funktionieren):

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SelfFramed: additions for debug builds only (fork-owned file, not in upstream) -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Audio buffer self-test for the emulator and the device (docs/selfframed/TESTPROTOKOLL.md) -->
+        <activity
+            android:name="com.limelight.selfframed.audio.AudioBufferTestActivity"
+            android:exported="true"
+            android:label="Audio buffer test" />
+    </application>
+</manifest>

@@ -76,4 +76,20 @@
     <string name="sf_update_permission_message">Damit sich Moonlight E-Ink selbst aktualisieren kann, im nächsten Bildschirm \"Aus dieser Quelle zulassen\" einschalten und zurückkehren. Das Update startet dann von selbst.</string>
     <string name="sf_update_open_settings">Einstellungen öffnen</string>
     <string name="sf_update_signature_mismatch">Das heruntergeladene Update ist nicht mit dem Schlüssel dieser App signiert; abgebrochen.</string>
+    <!-- Audio-Puffer (selfframed/audio) -->
+    <string name="sf_category_audio">Ton (SelfFramed)</string>
+    <string name="sf_title_audio_buffer">Audio-Puffer</string>
+    <string name="sf_summary_audio_buffer">%s. Mehr Puffer heißt weniger Aussetzer und etwas späterer Ton.</string>
+    <string name="sf_audio_perf_line">Ton: %1$d ms (Ziel %2$d) · Aussetzer %3$d · Ausgleich −%4$d/+%5$d · %6$s</string>
+    <string name="sf_audio_perf_upstream">Ton: wie Moonlight (ohne Puffer)</string>
+    <string name="sf_audio_out">%1$s, %2$s kHz, %3$s</string>
+    <string name="sf_audio_out_speaker">Lautsprecher</string>
+    <string name="sf_audio_out_wired">Kopfhörer</string>
+    <string name="sf_audio_out_bluetooth">Bluetooth</string>
+    <string name="sf_audio_out_usb">USB</string>
+    <string name="sf_audio_out_hdmi">HDMI/DP</string>
+    <string name="sf_audio_out_other">anderer Ausgang</string>
+    <string name="sf_audio_out_unknown">Ausgang unbekannt</string>
+    <string name="sf_audio_mode_fast">schnell</string>
+    <string name="sf_audio_mode_normal">normal</string>
 </resources>

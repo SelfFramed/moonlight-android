@@ -124,12 +124,27 @@ Einstellungen → E-Ink-Bild → **Presets verwalten**:
 | Tastenkürzel | Übersicht |
 | Updates (SelfFramed) | automatische Update-Suche an/aus, „Jetzt nach Updates suchen“ (zeigt die installierte Version) |
 
+In der Kategorie „Ton (SelfFramed)“:
+
+| Einstellung | Wirkung |
+|---|---|
+| Audio-Puffer | **Automatisch (empfohlen):** startet mit 60 ms Vorrat, wächst nach Aussetzern von selbst (bis 250 ms) und merkt sich den Wert für den nächsten Stream. **50/100/200 ms:** feste Größe. **Wie Moonlight:** der minimale Puffer des offiziellen Moonlight (geringste Latenz, kann knacksen). |
+
 ## 8. Leistungsanzeige
 
 Ist in den Moonlight-Einstellungen die Leistungsanzeige an, steht darunter eine Zeile wie
 „Bildstufe: 0,6 ms/frame, 60 fps, 0 skipped · 3 · Papierweiß (Text)“: die Zeit für Abholen, Zeichnen und Übergabe pro
 Bild und wie viele Bilder zugunsten eines neueren übersprungen wurden. Damit lässt sich der Mehraufwand am Gerät
 nachprüfen.
+
+Darunter steht eine Zeile wie „Ton: 58 ms (Ziel 60) · Aussetzer 0 · Ausgleich −1/+0 · Lautsprecher, 48 kHz, schnell“.
+Sie zeigt:
+
+- die aktuelle Verzögerung im Puffer und das Ziel;
+- wie oft der Ton leer lief;
+- wie viele Pakete zum Ausgleich unhörbar überblendet gekürzt oder ergänzt wurden;
+- wohin der Ton geht (Lautsprecher, Kopfhörer, Bluetooth, USB, HDMI/DP), mit welcher Ausgaberate und ob Android den
+  schnellen Pfad gewährt hat.
 
 ## 9. Wenn etwas nicht geht
 
@@ -139,4 +154,6 @@ nachprüfen.
 | „HDR-Stream: Bildanpassung ist aus“ | HDR ist in den Moonlight-Einstellungen an; für E-Ink ausschalten. |
 | Kürzel wirken nicht | Alle drei Modifikatoren (Strg, Alt, Shift) halten; ist das Bedienfeld offen, wirken die Tasten dort. |
 | Steile Kurven zeigen Blöcke/Bänder | Kurven verstärken Kompressionsartefakte. Bitrate erhöhen oder die Kurve sanfter machen. |
-| Alles kaputt | Einstellungen → Bildanpassung im Stream aus, oder das offizielle Moonlight nehmen. |
+| Ton knackst oder setzt aus | Leistungsanzeige ansehen. Steigt „Aussetzer“, wächst der Puffer bei „Automatisch“ von selbst; sonst „Audio-Puffer“ höher stellen. Mit Bluetooth-Kopfhörern hilft 5-GHz-WLAN, weil sich 2,4-GHz-WLAN das Funkband mit Bluetooth teilt. |
+| Ton kommt zu spät | „Audio-Puffer“ auf 50 ms. Auf E-Ink erscheint das Bild ohnehin später als der Ton. |
+| Alles kaputt | Einstellungen → Bildanpassung im Stream aus und Audio-Puffer „Wie Moonlight“, oder das offizielle Moonlight nehmen. |

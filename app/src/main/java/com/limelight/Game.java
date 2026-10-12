@@ -2587,7 +2587,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
 
             decoderRenderer.setRenderTarget(holder);
-            conn.start(new AndroidAudioRenderer(Game.this, prefConfig.enableAudioFx),
+            // [SelfFramed] Audio renderer with a jitter buffer (setting "Audio-Puffer", upstream's renderer as an option)
+            conn.start(com.limelight.selfframed.audio.SfAudio.createRenderer(Game.this, prefConfig.enableAudioFx),
                     decoderRenderer, Game.this);
         }
     }
@@ -2742,8 +2743,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                // [SelfFramed] Append the picture stage's own numbers
+                // [SelfFramed] Append the picture stage's and the audio buffer's own numbers
                 String sfLine = sfGrading != null ? sfGrading.perfOverlayLine() : null;
+                String sfAudioLine = com.limelight.selfframed.audio.SfAudio.perfOverlayLine(Game.this);
+                if (sfAudioLine != null) {
+                    sfLine = sfLine != null ? sfLine + "\n" + sfAudioLine : sfAudioLine;
+                }
                 performanceOverlayView.setText(sfLine != null ? text + "\n" + sfLine : text);
             }
         });

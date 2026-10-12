@@ -27,6 +27,9 @@ Stand: 12.10.2026. Reihenfolge = Vorschlag der Produktverantwortung (Claude). Ma
    Lila, Magenta). Technisch: 3D-LUT (z. B. 33³) statt 1D-LUT, in der GPU-Stufe direkt nutzbar.
 6. **Kurvenvorschau mit Histogramm** im Bedienfeld (aus dem aktuellen Bild, siehe 7).
 
+- **Ton, falls die Zeile „Ton“ am Gerät weiter Aussetzer zeigt:** verspätete Pakete mit Opus-PLC verdecken statt Stille
+  (braucht einen kleinen JNI-Einstieg), oder AAudio statt AudioTrack.
+
 ## Fernziel: automatische Belichtung (wie a6500)
 
 7. **Auto-Belichtung / Auto-Tonwert:**

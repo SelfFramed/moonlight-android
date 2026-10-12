@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SelfFramed fork: strings of the in-stream picture panel (com.limelight.selfframed.ui).
+     German translations: values-de/sf_ui_strings.xml. -->
+<resources>
+    <!-- Header -->
+    <string name="sf_ui_preset_name">%1$d · %2$s</string>
+    <string name="sf_ui_filter_on">Filter: on (F)</string>
+    <string name="sf_ui_filter_off">Filter: off (F)</string>
+    <string name="sf_ui_filter_neutral">Neutral: original picture (F: back to %1$d)</string>
+
+    <!-- Tone curve -->
+    <string name="sf_ui_curve_title">Tone curve</string>
+    <string name="sf_ui_channel_master">Master</string>
+    <string name="sf_ui_channel_r">R</string>
+    <string name="sf_ui_channel_g">G</string>
+    <string name="sf_ui_channel_b">B</string>
+    <!-- Short labels next to the dashed curves of the other channels in the plot -->
+    <string name="sf_ui_channel_short_master">M</string>
+    <string name="sf_ui_channel_short_r">R</string>
+    <string name="sf_ui_channel_short_g">G</string>
+    <string name="sf_ui_channel_short_b">B</string>
+    <string name="sf_ui_point_status">Point %1$d of %2$d · in %3$d → out %4$d</string>
+    <string name="sf_ui_curve_hint">Arrows: move (Shift: big steps) · , . : select · + N: add · Del: remove · C: channel · R: reset</string>
+
+    <!-- Secondary controls -->
+    <string name="sf_ui_brightness">Brightness</string>
+    <string name="sf_ui_contrast">Contrast</string>
+    <string name="sf_ui_gamma">Gamma</string>
+    <string name="sf_ui_saturation">Saturation</string>
+    <string name="sf_ui_mono">Grayscale mix</string>
+    <string name="sf_ui_weight_r">Weight red</string>
+    <string name="sf_ui_weight_g">Weight green</string>
+    <string name="sf_ui_weight_b">Weight blue</string>
+    <string name="sf_ui_value_percent">%1$d %%</string>
+    <string name="sf_ui_value_gamma">%1$.2f</string>
+    <string name="sf_ui_value_weight">%1$.3f · %2$d %%</string>
+    <string name="sf_ui_value_weight_unused">%1$.3f · –</string>
+    <string name="sf_ui_on">On</string>
+    <string name="sf_ui_off">Off</string>
+
+    <!-- Actions -->
+    <string name="sf_ui_reset_channel">Reset channel (R)</string>
+    <string name="sf_ui_reset_preset">Reset preset</string>
+    <string name="sf_ui_reset_preset_confirm">Reset preset to its default? Enter again to confirm</string>
+    <string name="sf_ui_rename">Rename</string>
+    <string name="sf_ui_rename_hint">Enter: save · Esc: cancel</string>
+    <string name="sf_ui_close">Close (Esc)</string>
+
+    <!-- Footer -->
+    <string name="sf_ui_footer_panel">Panel: Tab ↑↓ row · ←→ change (Shift: big steps) · Enter/Space activate · 1–9 preset · 0 neutral · F filter · Esc close</string>
+    <string name="sf_ui_footer_hotkeys">Ctrl+Alt+Shift: 1–9 preset · 0 neutral · F before/after · P panel · ←/→ previous/next</string>
+</resources>

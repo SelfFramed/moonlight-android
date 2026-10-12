@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SelfFramed-Fork: Texte des Bild-Bedienfelds im Stream (com.limelight.selfframed.ui). -->
+<resources>
+    <!-- Kopf -->
+    <string name="sf_ui_preset_name">%1$d · %2$s</string>
+    <string name="sf_ui_filter_on">Filter: an (F)</string>
+    <string name="sf_ui_filter_off">Filter: aus (F)</string>
+    <string name="sf_ui_filter_neutral">Neutral: Originalbild (F: zurück zu %1$d)</string>
+
+    <!-- Gradationskurve -->
+    <string name="sf_ui_curve_title">Gradationskurve</string>
+    <string name="sf_ui_channel_master">Gesamt</string>
+    <string name="sf_ui_channel_r">Rot</string>
+    <string name="sf_ui_channel_g">Grün</string>
+    <string name="sf_ui_channel_b">Blau</string>
+    <string name="sf_ui_channel_short_master">Ges</string>
+    <string name="sf_ui_channel_short_r">R</string>
+    <string name="sf_ui_channel_short_g">G</string>
+    <string name="sf_ui_channel_short_b">B</string>
+    <string name="sf_ui_point_status">Punkt %1$d von %2$d · ein %3$d → aus %4$d</string>
+    <string name="sf_ui_curve_hint">Pfeile: verschieben (Shift: grob) · , . : wählen · + N: hinzufügen · Entf: löschen · C: Kanal · R: zurücksetzen</string>
+
+    <!-- Weitere Regler -->
+    <string name="sf_ui_brightness">Helligkeit</string>
+    <string name="sf_ui_contrast">Kontrast</string>
+    <string name="sf_ui_gamma">Gamma</string>
+    <string name="sf_ui_saturation">Sättigung</string>
+    <string name="sf_ui_mono">Graustufen-Mischung</string>
+    <string name="sf_ui_weight_r">Gewicht Rot</string>
+    <string name="sf_ui_weight_g">Gewicht Grün</string>
+    <string name="sf_ui_weight_b">Gewicht Blau</string>
+    <string name="sf_ui_value_percent">%1$d %%</string>
+    <string name="sf_ui_value_gamma">%1$.2f</string>
+    <string name="sf_ui_value_weight">%1$.3f · %2$d %%</string>
+    <string name="sf_ui_value_weight_unused">%1$.3f · –</string>
+    <string name="sf_ui_on">An</string>
+    <string name="sf_ui_off">Aus</string>
+
+    <!-- Aktionen -->
+    <string name="sf_ui_reset_channel">Kanal zurücksetzen (R)</string>
+    <string name="sf_ui_reset_preset">Preset zurücksetzen</string>
+    <string name="sf_ui_reset_preset_confirm">Preset auf Startwert zurücksetzen? Nochmal Enter zum Bestätigen</string>
+    <string name="sf_ui_rename">Umbenennen</string>
+    <string name="sf_ui_rename_hint">Enter: speichern · Esc: abbrechen</string>
+    <string name="sf_ui_close">Schließen (Esc)</string>
+
+    <!-- Fußzeile -->
+    <string name="sf_ui_footer_panel">Bedienfeld: Tab ↑↓ Zeile · ←→ ändern (Shift: grob) · Enter/Leertaste auslösen · 1–9 Preset · 0 Neutral · F Filter · Esc schließen</string>
+    <string name="sf_ui_footer_hotkeys">Strg+Alt+Shift: 1–9 Preset · 0 Neutral · F Vorher/Nachher · P Bedienfeld · ←/→ voriges/nächstes</string>
+</resources>

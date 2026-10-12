@@ -42,3 +42,8 @@ app/.externalNativeBuild/
 
 # NDK stuff
 .cxx/
+
+# [SelfFramed] Local release signing (docs/selfframed/RELEASE.md)
+sf-signing.properties
+*.jks
+*.keystore

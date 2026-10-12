@@ -1,0 +1,113 @@
+// SelfFramed fork configuration, applied by a single line at the end of app/build.gradle.
+//
+// Everything that makes this build a SelfFramed build lives here instead of in
+// app/build.gradle, so upstream edits to build.gradle (version bumps, dependency updates)
+// merge without conflicts. Settings: app/selfframed.properties. Docs: docs/selfframed/.
+
+def sfProps = new Properties()
+file('selfframed.properties').withInputStream { sfProps.load(it) }
+def sfRevision = Integer.parseInt(sfProps.getProperty('sf.revision', '1').trim())
+def sfAppId = sfProps.getProperty('sf.applicationId', 'com.selfframed.moonlight').trim()
+def sfAppName = sfProps.getProperty('sf.appName', 'Moonlight E-Ink').trim()
+
+if (sfRevision < 1 || sfRevision > 99) {
+    throw new GradleException("sf.revision must be 1..99 (versionCode = upstream * 100 + revision)")
+}
+
+android {
+    defaultConfig {
+        // Upstream "12.2" / 315 becomes "12.2-sf.1" / 31501
+        def upstreamVersionName = versionName
+        versionName = "${upstreamVersionName}-sf.${sfRevision}".toString()
+        versionCode = versionCode * 100 + sfRevision
+        buildConfigField "String", "SF_UPSTREAM_VERSION", "\"${upstreamVersionName}\""
+    }
+
+    // Our own application ID, as the upstream author explicitly asks of every fork
+    // (see the comment on applicationIdSuffix in app/build.gradle). It also lets this app
+    // live next to the official Moonlight, which stays installed as a fallback.
+    productFlavors {
+        nonRoot {
+            applicationId = sfAppId
+        }
+        root {
+            applicationId = sfAppId + ".root"
+        }
+    }
+
+    buildTypes {
+        debug {
+            resValue "string", "app_label", "${sfAppName} (Debug)"
+            resValue "string", "app_label_root", "${sfAppName} (Root Debug)"
+        }
+        release {
+            // The ".unofficial" suffix only exists to keep forks off the official ID; our
+            // base ID is already distinct, so the suffix is dropped.
+            applicationIdSuffix = null
+            resValue "string", "app_label", sfAppName
+            resValue "string", "app_label_root", "${sfAppName} (Root)"
+        }
+    }
+
+    testOptions {
+        unitTests.all {
+            // Keep JVM unit tests light on Martin's PC, which streams while we build
+            maxParallelForks = 1
+        }
+    }
+}
+
+// Release signing. Order: environment (CI) -> sf-signing.properties in the repo root
+// (local, gitignored) -> unsigned. See docs/selfframed/RELEASE.md.
+def sfSigning = null
+if (System.getenv('SF_KEYSTORE_FILE')) {
+    sfSigning = [
+            storeFile    : System.getenv('SF_KEYSTORE_FILE'),
+            storePassword: System.getenv('SF_KEYSTORE_PASSWORD'),
+            keyAlias     : System.getenv('SF_KEY_ALIAS'),
+            keyPassword  : System.getenv('SF_KEY_PASSWORD'),
+    ]
+} else {
+    def signingFile = rootProject.file('sf-signing.properties')
+    if (signingFile.exists()) {
+        def p = new Properties()
+        signingFile.withInputStream { p.load(it) }
+        sfSigning = [
+                storeFile    : p.getProperty('storeFile'),
+                storePassword: p.getProperty('storePassword'),
+                keyAlias     : p.getProperty('keyAlias'),
+                keyPassword  : p.getProperty('keyPassword'),
+        ]
+    }
+}
+
+if (sfSigning != null && sfSigning.storeFile) {
+    def store = new File(sfSigning.storeFile as String)
+    if (!store.isAbsolute()) {
+        store = rootProject.file(sfSigning.storeFile as String)
+    }
+    if (!store.exists()) {
+        throw new GradleException("SelfFramed release keystore not found: ${store}")
+    }
+    android {
+        signingConfigs {
+            sfRelease {
+                storeFile store
+                storePassword sfSigning.storePassword
+                keyAlias sfSigning.keyAlias
+                keyPassword sfSigning.keyPassword
+            }
+        }
+        buildTypes {
+            release {
+                signingConfig signingConfigs.sfRelease
+            }
+        }
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    // android.jar only contains stubs of org.json; the real implementation is needed on the JVM
+    testImplementation 'org.json:json:20240303'
+}

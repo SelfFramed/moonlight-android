@@ -151,3 +151,6 @@ dependencies {
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
+
+// [SelfFramed] Fork identity, release signing and unit-test dependencies (docs/selfframed/PATCHES.md)
+apply from: 'selfframed.gradle'

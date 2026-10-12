@@ -26,7 +26,9 @@ param(
     [string]$NotesFile
 )
 
-$ErrorActionPreference = 'Stop'
+# PowerShell 5.1 turns any stderr line of a native tool (git progress, Java warnings) into an error
+# record; with 'Stop' that aborts. So: 'Continue', and every native call is checked via $LASTEXITCODE.
+$ErrorActionPreference = 'Continue'
 # Public certificate fingerprint of the SelfFramed release key (not a secret)
 $ExpectedCertSha256 = 'c226922a62a12497f065d88e5f92a39f7743e4c851acf157e6e6405aa19c59df'
 $Repo = 'SelfFramed/moonlight-android'
@@ -42,7 +44,8 @@ Step 'Checking repository state'
 $branch = (git rev-parse --abbrev-ref HEAD).Trim()
 if ($branch -ne 'main') { Fail "on branch '$branch', expected main" }
 if (git status --porcelain) { Fail 'working tree not clean' }
-git fetch --quiet origin main
+git fetch --quiet origin main 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) { Fail 'git fetch failed' }
 $behind = [int](git rev-list --count HEAD..origin/main)
 if ($behind -gt 0) { Fail "main is $behind commit(s) behind origin/main" }
 
@@ -55,7 +58,9 @@ $version = "$upstream-sf.$($Matches[1])"
 $tag = "v$version"
 Write-Host "   version $version, tag $tag"
 if (git tag -l $tag) { Fail "tag $tag exists locally; bump sf.revision first (RELEASE.md)" }
-if (git ls-remote --tags origin "refs/tags/$tag") { Fail "tag $tag exists on origin" }
+$remoteTag = git ls-remote --tags origin "refs/tags/$tag" 2>$null
+if ($LASTEXITCODE -ne 0) { Fail 'git ls-remote failed' }
+if ($remoteTag) { Fail "tag $tag exists on origin" }
 if (-not (Test-Path 'sf-signing.properties')) { Fail 'sf-signing.properties missing (release key not wired)' }
 
 # ---- 2. Build ----
@@ -73,15 +78,19 @@ if (-not (Test-Path $apk)) { Fail "$apk missing" }
 $badging = & (Join-Path $bt.FullName 'aapt2.exe') dump badging $apk 2>$null | Select-Object -First 1
 if ($badging -notmatch "name='com\.selfframed\.moonlight' versionCode='(\d+)' versionName='([^']+)'") { Fail "unexpected package: $badging" }
 if ($Matches[2] -ne $version) { Fail "APK versionName $($Matches[2]) != $version" }
-$certs = & (Join-Path $bt.FullName 'apksigner.bat') verify --print-certs $apk 2>&1
+# apksigner.bat picks Java from JAVA_HOME; the Android Studio JBR avoids warnings of newer JDKs
+$jbr = 'C:\Program Files\Android\Android Studio\jbr'
+if (Test-Path $jbr) { $env:JAVA_HOME = $jbr }
+$certs = & (Join-Path $bt.FullName 'apksigner.bat') verify --print-certs $apk 2>$null
+if ($LASTEXITCODE -ne 0) { Fail "apksigner verify failed:`n$certs" }
 $certLine = $certs | Select-String -Pattern 'Signer #1 certificate SHA-256 digest: ([0-9a-f]+)' | Select-Object -First 1
 if (-not $certLine) { Fail "apksigner could not verify the APK:`n$certs" }
 if ($certLine.Matches[0].Groups[1].Value -ne $ExpectedCertSha256) { Fail 'APK is not signed with the SelfFramed release key' }
 
 $outDir = Join-Path $root 'build\sf-release'
-New-Item -ItemType Directory -Force $outDir | Out-Null
+New-Item -ItemType Directory -Force $outDir -ErrorAction Stop | Out-Null
 $asset = Join-Path $outDir "moonlight-eink-$version-nonRoot-release.apk"
-Copy-Item $apk $asset -Force
+Copy-Item $apk $asset -Force -ErrorAction Stop
 $sha = (Get-FileHash $asset -Algorithm SHA256).Hash.ToLowerInvariant()
 Write-Host "   $asset"
 Write-Host "   SHA-256 $sha, signed with the SelfFramed key"
@@ -119,9 +128,10 @@ if ($DryRun) {
 # ---- 4. Tag, push, publish ----
 Step "Tagging and pushing $tag"
 git tag -a $tag -m "Moonlight E-Ink $version"
-git push origin main
+if ($LASTEXITCODE -ne 0) { Fail 'git tag failed' }
+git push origin main 2>&1 | ForEach-Object { "   $_" }
 if ($LASTEXITCODE -ne 0) { Fail 'push of main failed' }
-git push origin $tag
+git push origin $tag 2>&1 | ForEach-Object { "   $_" }
 if ($LASTEXITCODE -ne 0) { Fail 'push of the tag failed' }
 
 Step 'Creating the GitHub release (as SelfFramed)'

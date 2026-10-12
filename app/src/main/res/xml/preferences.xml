@@ -28,6 +28,19 @@
             android:summary="@string/sf_summary_grading_hotkeys" />
     </PreferenceCategory>
 
+    <!-- [SelfFramed] Self-update from the fork's GitHub releases (docs/selfframed/BEDIENUNG.md) -->
+    <PreferenceCategory android:title="@string/sf_category_update"
+        android:key="sf_category_update">
+        <CheckBoxPreference
+            android:key="sf_update_auto"
+            android:title="@string/sf_title_update_auto"
+            android:summary="@string/sf_summary_update_auto"
+            android:defaultValue="true" />
+        <com.limelight.selfframed.update.SfUpdatePreference
+            android:key="sf_update_check"
+            android:title="@string/sf_title_update_check" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/category_basic_settings"
         android:key="category_basic_settings">
         <ListPreference

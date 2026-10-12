@@ -37,6 +37,9 @@ ihn: Martins Wünsche einbauen, Upstream-Releases übernehmen.
   Plattform installiert AGP selbst.
 - Release-Schlüssel: `C:\Users\mpp\.selfframed\keys\moonlight-release.jks` (+ `.properties` mit Passwort); lokal
   verdrahtet über `sf-signing.properties` (gitignored). Nie committen, nie ausgeben.
+- Releases: `powershell -File tools\sf\release-local.ps1 -DryRun`, dann ohne `-DryRun` (nur mit Martins Zustimmung).
+  Der Schlüssel bleibt lokal (Entscheidung 12.10.2026); die App aktualisiert sich selbst über GitHub-Releases
+  (`docs/selfframed/RELEASE.md`).
 
 ## Git und GitHub
 

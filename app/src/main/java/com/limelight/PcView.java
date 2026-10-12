@@ -306,6 +306,9 @@ public class PcView extends Activity implements AdapterFragmentCallbacks {
         // Display a decoder crash notification if we've returned after a crash
         UiHelper.showDecoderCrashDialog(this);
 
+        // [SelfFramed] Offer updates of this fork from GitHub (throttled, asks before installing)
+        com.limelight.selfframed.update.UpdateChecker.onMainScreenResumed(this);
+
         inForeground = true;
         startComputerUpdates();
     }

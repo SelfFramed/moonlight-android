@@ -71,7 +71,7 @@ Angabe außerdem das Upstream-Repository als Ziel. Deshalb bei jedem gh-Befehl `
 3. Settings → Actions → General → Workflow permissions: **„Allow GitHub Actions to create and approve pull requests“**
    aktivieren. Ohne diese Einstellung kann der Wächter keinen PR öffnen.
 4. Settings → General → Features: **Issues** aktivieren (bei Forks standardmäßig aus). Ohne Issues schlägt die Konfliktmeldung fehl.
-5. Signatur-Secrets nach `RELEASE.md` anlegen (für den Wächter nicht nötig).
+5. Signatur-Secrets: nicht nötig. Releases baut und veröffentlicht Claude lokal (`RELEASE.md`).
 
 GitHub deaktiviert zeitgesteuerte Workflows in öffentlichen Repositories nach 60 Tagen ohne Aktivität. Dann den Wächter im
 Actions-Tab wieder aktivieren.
@@ -99,8 +99,8 @@ gh api -X PUT repos/SelfFramed/moonlight-android/actions/permissions/workflow \
 unset GH_TOKEN
 ```
 
-Signatur-Secrets (`RELEASE.md`) lädt Claude nur hoch, wenn Martin dem Hochladen des Release-Schlüssels ausdrücklich
-zugestimmt hat.
+Erledigt am 12.10.2026: Fork angelegt, `main` Standard, Issues und Actions an, PR-Recht für Actions. Signatur-Secrets
+werden nicht hochgeladen (Entscheidung 12.10.2026, `RELEASE.md`).
 
 ## 4. Ablauf A: Der Wächter hat einen PR geöffnet
 

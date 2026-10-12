@@ -21,6 +21,11 @@ android {
         versionName = "${upstreamVersionName}-sf.${sfRevision}".toString()
         versionCode = versionCode * 100 + sfRevision
         buildConfigField "String", "SF_UPSTREAM_VERSION", "\"${upstreamVersionName}\""
+        // Self-update source (GitHub releases of the fork). Overridable for tests:
+        // gradlew -Psf.updateApi=http://10.0.2.2:8765/latest.json assembleNonRootRelease
+        def updateApi = (project.findProperty('sf.updateApi')
+                ?: 'https://api.github.com/repos/SelfFramed/moonlight-android/releases/latest').toString()
+        buildConfigField "String", "SF_UPDATE_API", "\"${updateApi}\""
     }
 
     // Our own application ID, as the upstream author explicitly asks of every fork

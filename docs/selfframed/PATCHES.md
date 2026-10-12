@@ -34,8 +34,9 @@ Grundregeln:
 | 16 | `Game.java` | Anfang `handleKeyUp` | dito für Key-Up | ganz oben |
 | 17 | `Game.java` | `onPerfUpdate` | Zeile „Bildstufe: … ms/Bild“ an die Leistungsanzeige hängen | – |
 | 18 | `Game.java` | Ende `onDestroy` | Presets speichern, Stufe freigeben (falls `cleanup()` nicht lief) | – |
-| 19 | `res/xml/preferences.xml` | erste `PreferenceCategory` `sf_category_grading` | Einstellungen: Hauptschalter, Einblendung, Presets verwalten, Kürzel-Übersicht | Kategorie oben halten |
-| 20 | `AndroidManifest.xml` | zwei `<activity>` am Ende von `<application>` | `GradingPresetsActivity` (nicht exportiert), `GradingTestPatternActivity` (exportiert, für `adb am start` im Gerätetest) | – |
+| 19 | `res/xml/preferences.xml` | erste `PreferenceCategory` `sf_category_grading`, danach `sf_category_update` | Einstellungen: Hauptschalter, Einblendung, Presets verwalten, Kürzel-Übersicht; Update-Suche | beide Kategorien oben halten |
+| 20 | `AndroidManifest.xml` | zwei `<activity>` und ein `<receiver>` am Ende von `<application>`, `REQUEST_INSTALL_PACKAGES` bei den Berechtigungen | `GradingPresetsActivity` (nicht exportiert), `GradingTestPatternActivity` (exportiert, für `adb am start` im Gerätetest), `UpdateStatusReceiver` (Ergebnis der Installations-Sitzung) | – |
+| 22 | `PcView.java` | `onResume`, nach `UiHelper.showDecoderCrashDialog(this)` | Update-Prüfung auf dem Startbildschirm (gedrosselt, nie im Stream) bzw. nach der Erlaubnis „Aus dieser Quelle zulassen“ weitermachen | – |
 | 21 | `README.md` | Kasten ganz oben | Hinweis auf den Fork, Links zur Doku; Upstream-Text bleibt unverändert darunter | Kasten oben halten |
 
 ## Was bei Upstream-Änderungen besonders zu prüfen ist

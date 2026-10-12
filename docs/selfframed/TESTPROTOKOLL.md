@@ -64,11 +64,19 @@ Gleiche Szene (z. B. Maus kreisen lassen, Video im Browser), 1600×1200, gleiche
 - [ ] D3 Zehn Mal schnell zwischen Presets wechseln, während ein Video läuft: kein Hänger.
 - [ ] D4 HDR in den Einstellungen an (falls der Host HDR kann): Einblendung „HDR-Stream: Bildanpassung ist aus“, Stream läuft.
 
+## E. Updates
+
+- [ ] E1 Einstellungen → Updates (SelfFramed): „Installiert: <Version>“ stimmt; „Jetzt nach Updates suchen“ meldet
+      „aktuell“ (solange kein neueres reguläres Release existiert).
+- [ ] E2 Beim nächsten regulären Release: App öffnen → Update-Dialog → Installieren → (einmalig „Aus dieser Quelle
+      zulassen“) → Androids Bestätigung → neue Version läuft, Kopplung und Presets sind erhalten.
+
 ## Ergebnisse
 
 | Datum | Version | Gerät/ROM | A | B | C | D | Notizen |
 |---|---|---|---|---|---|---|---|
 | 12.10.2026 | 12.2-sf.1 (Debug) | Emulator API 36, x86_64, SwiftShader | A1–A4 bestanden (automatisch), A5–A8 siehe unten | – | – | – | `tools/sf/verify-gpu-stage.py`: 7 Presets × 16 Graustufen pixelgenau gegen die Original-JS-Mathematik, maximale Abweichung 0. Alle Wechsel als Neuzeichnen eines stehenden Bildes (statischer Desktop). Einblendung sichtbar. Kein Stream möglich (kein Host im Emulator). |
+| 12.10.2026 | 12.2-sf.1 → 12.2-sf.2 (Release, Testserver) | Emulator API 36 | – | – | – | – | Update-Funktion durchgängig: Dialog, einmalige Erlaubnis, Download, Prüfungen, Bestätigung, installiert (versionCode 31502). Play Protect fragte einmal (ohne Scan installiert). Lehre: Pythons HTTP/1.0-Testserver bricht im Emulator große Downloads ab, deshalb ein Keep-Alive-Testserver. |
 | – | 12.2-sf.1 | Moto G100 | offen | offen | offen | offen | noch nicht auf dem Gerät getestet |
 
 Die automatische Prüfung (`python tools/sf/verify-gpu-stage.py <serial> <appId> <Ausgabeordner>`) deckt A1–A4 ab und

@@ -50,4 +50,29 @@
     <!-- Performance overlay -->
     <string name="sf_perf_line">Picture stage: %1$s · %2$s</string>
     <string name="sf_perf_off">Picture stage: off (%1$s)</string>
+
+    <!-- Self-update from GitHub releases -->
+    <string name="sf_category_update">Updates (SelfFramed)</string>
+    <string name="sf_title_update_auto">Check for updates automatically</string>
+    <string name="sf_summary_update_auto">When the app opens, at most every 6 hours. Always asks before installing anything.</string>
+    <string name="sf_title_update_check">Check for updates now</string>
+    <string name="sf_summary_update_check">Installed: %1$s</string>
+    <string name="sf_update_title">Update available</string>
+    <string name="sf_update_title_version">Update %1$s</string>
+    <string name="sf_update_message">Moonlight E-Ink %1$s is available (installed: %2$s).</string>
+    <string name="sf_update_install">Install</string>
+    <string name="sf_update_later">Later</string>
+    <string name="sf_update_skip">Skip this version</string>
+    <string name="sf_update_retry">Try again</string>
+    <string name="sf_update_cancel">Cancel</string>
+    <string name="sf_update_none">Moonlight E-Ink is up to date (%1$s).</string>
+    <string name="sf_update_checking">Checking for updates …</string>
+    <string name="sf_update_error">Update check failed: %1$s</string>
+    <string name="sf_update_debug_build">Debug build: updates are only offered to the release app.</string>
+    <string name="sf_update_downloading">Downloading … %1$s</string>
+    <string name="sf_update_failed">Update failed: %1$s</string>
+    <string name="sf_update_permission_title">Allow once</string>
+    <string name="sf_update_permission_message">To update itself, Moonlight E-Ink needs \"Allow from this source\" in the next screen. Switch it on and come back; the update then starts by itself.</string>
+    <string name="sf_update_open_settings">Open settings</string>
+    <string name="sf_update_signature_mismatch">The downloaded update is not signed with the key of this app; cancelled.</string>
 </resources>

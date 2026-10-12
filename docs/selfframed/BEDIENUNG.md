@@ -8,7 +8,13 @@ Stand: 12.10.2026, Version 12.2-sf.1. Was der Fork kann und wie man ihn benutzt.
   installiert; das offizielle bleibt als Rückfallebene.
 - Einmalig: Rechner hinzufügen bzw. finden lassen und mit Sunshine per PIN koppeln, wie beim offiziellen Moonlight.
   Kopplung und Einstellungen werden nicht aus dem offiziellen Moonlight übernommen.
-- Wege aufs Telefon: siehe [BUILD.md](BUILD.md) (adb, Datei) und [RELEASE.md](RELEASE.md) (Updates per Obtainium).
+- Erstinstallation: auf dem Telefon https://github.com/SelfFramed/moonlight-android/releases öffnen und die APK
+  `moonlight-eink-<version>-nonRoot-release.apk` antippen (Alternativen: [BUILD.md](BUILD.md)). Falls Google Play Protect
+  nachfragt: „Weitere Details“ → „Ohne Scan installieren“ (oder scannen lassen).
+- **Updates kommen danach von selbst:** Beim Öffnen fragt die App höchstens alle 6 Stunden auf GitHub nach einer neuen
+  Version und bietet „Installieren“ an. Beim ersten Update leitet sie einmalig zu „Aus dieser Quelle zulassen“, danach
+  reicht ein Tippen plus Androids Bestätigung. Von Hand: Einstellungen → Updates (SelfFramed) → „Jetzt nach Updates
+  suchen“. Details: [RELEASE.md](RELEASE.md).
 
 ## 2. Im Stream: Tastenkürzel
 
@@ -111,6 +117,7 @@ Einstellungen → E-Ink-Bild → **Presets verwalten**:
 | Preset-Wechsel einblenden | die kurze Einblendung bei Wechseln |
 | Presets verwalten | Testbild, Export, Import, Startwerte |
 | Tastenkürzel | Übersicht |
+| Updates (SelfFramed) | automatische Update-Suche an/aus, „Jetzt nach Updates suchen“ (zeigt die installierte Version) |
 
 ## 8. Leistungsanzeige
 

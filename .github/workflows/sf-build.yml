@@ -157,7 +157,9 @@ jobs:
   release:
     name: GitHub-Release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref_name, '-sf.') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    # Releases are normally built, signed and published locally (tools/sf/release-local.ps1), because the
+    # signing key stays on Martin's PC. This job only takes over if signing secrets are ever added.
+    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref_name, '-sf.') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.build.outputs.signed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -191,7 +193,7 @@ jobs:
             echo "Moonlight E-Ink ${TAG#v}: SelfFramed-Fork von [Moonlight Android](https://github.com/moonlight-stream/moonlight-android), Upstream-Basis ${upstream_version}."
             echo
             echo "- Bedienung: [docs/selfframed/BEDIENUNG.md](${REPO_URL}/blob/${TAG}/docs/selfframed/BEDIENUNG.md)"
-            echo "- Installation, Updates (Obtainium) und Signatur: [docs/selfframed/RELEASE.md](${REPO_URL}/blob/${TAG}/docs/selfframed/RELEASE.md)"
+            echo "- Installation und Updates (in der App: Einstellungen → Updates): [docs/selfframed/RELEASE.md](${REPO_URL}/blob/${TAG}/docs/selfframed/RELEASE.md)"
             echo
             if [ "$SIGNED" = "true" ]; then
               echo "Das APK \`*-nonRoot-release.apk\` ist mit dem SelfFramed-Release-Schlüssel signiert (applicationId \`com.selfframed.moonlight\`)."

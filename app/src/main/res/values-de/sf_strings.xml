@@ -49,4 +49,29 @@
     <!-- Leistungsanzeige -->
     <string name="sf_perf_line">Bildstufe: %1$s · %2$s</string>
     <string name="sf_perf_off">Bildstufe: aus (%1$s)</string>
+
+    <!-- Selbst-Update aus GitHub-Releases -->
+    <string name="sf_category_update">Updates (SelfFramed)</string>
+    <string name="sf_title_update_auto">Automatisch nach Updates suchen</string>
+    <string name="sf_summary_update_auto">Beim Öffnen der App, höchstens alle 6 Stunden. Fragt immer, bevor etwas installiert wird.</string>
+    <string name="sf_title_update_check">Jetzt nach Updates suchen</string>
+    <string name="sf_summary_update_check">Installiert: %1$s</string>
+    <string name="sf_update_title">Update verfügbar</string>
+    <string name="sf_update_title_version">Update %1$s</string>
+    <string name="sf_update_message">Moonlight E-Ink %1$s ist da (installiert: %2$s).</string>
+    <string name="sf_update_install">Installieren</string>
+    <string name="sf_update_later">Später</string>
+    <string name="sf_update_skip">Diese Version überspringen</string>
+    <string name="sf_update_retry">Erneut versuchen</string>
+    <string name="sf_update_cancel">Abbrechen</string>
+    <string name="sf_update_none">Moonlight E-Ink ist aktuell (%1$s).</string>
+    <string name="sf_update_checking">Suche nach Updates …</string>
+    <string name="sf_update_error">Update-Prüfung fehlgeschlagen: %1$s</string>
+    <string name="sf_update_debug_build">Debug-Build: Updates gibt es nur für die Release-App.</string>
+    <string name="sf_update_downloading">Lade herunter … %1$s</string>
+    <string name="sf_update_failed">Update fehlgeschlagen: %1$s</string>
+    <string name="sf_update_permission_title">Einmalig erlauben</string>
+    <string name="sf_update_permission_message">Damit sich Moonlight E-Ink selbst aktualisieren kann, im nächsten Bildschirm \"Aus dieser Quelle zulassen\" einschalten und zurückkehren. Das Update startet dann von selbst.</string>
+    <string name="sf_update_open_settings">Einstellungen öffnen</string>
+    <string name="sf_update_signature_mismatch">Das heruntergeladene Update ist nicht mit dem Schlüssel dieser App signiert; abgebrochen.</string>
 </resources>

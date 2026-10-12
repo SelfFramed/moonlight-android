@@ -106,6 +106,16 @@ Game.onDestroy ─▶ controller.onDestroy()  (speichert, gibt die Stufe frei, f
 - Bild-Kürzel, solange Strg+Alt+Shift gehalten werden, überschreiben eine anstehende Upstream-Kombination (Z/Q/C) nicht.
 - Ist die Stufe nicht aktiv (HDR, Fehler), sagen die Kürzel per Einblendung warum, statt Wechsel vorzutäuschen.
 
+## 5a. Selbst-Update (`selfframed/update/`)
+
+- `UpdateChecker` (Startbildschirm, gedrosselt auf 6 h, nur Release-Builds) fragt
+  `BuildConfig.SF_UPDATE_API` = GitHub `releases/latest` ab. `ReleaseInfo` akzeptiert nur reguläre Releases mit Fork-Tag
+  `v<x>-sf.<n>` und genau einer passenden APK; `VersionNames` vergleicht Versionen (beides JVM-getestet).
+- `UpdateInstaller` lädt die APK in den Cache und prüft SHA-256 (GitHub-`digest`), Paketname, höhere `versionCode` und das
+  Signatur-Zertifikat gegen die installierte App. Danach übergibt er an `PackageInstaller` (Session, keine
+  FileProvider-Abhängigkeit). `UpdateStatusReceiver` zeigt Androids Bestätigung bzw. meldet Fehler.
+- Die Sicherheit hängt am Signaturschlüssel: Android installiert nur Updates mit demselben Zertifikat.
+
 ## 6. Einhängepunkte in Upstream-Dateien
 
 Vollständige Liste mit Zweck: [PATCHES.md](PATCHES.md). Alle sind mit `[SelfFramed]` markiert;

@@ -40,9 +40,14 @@ ihn: Martins Wünsche einbauen, Upstream-Releases übernehmen.
 
 ## Git und GitHub
 
+- Repo: https://github.com/SelfFramed/moonlight-android (öffentlicher Fork, Standardbranch `main`, Issues und Actions an;
+  angelegt 12.10.2026).
 - Remotes: `upstream` = moonlight-stream (Push absichtlich gesperrt), `origin` =
-  `git@github-selfframed:SelfFramed/moonlight-android.git` (SSH-Alias des Kontos **SelfFramed**). Die gh-CLI ist als
-  `krausality` angemeldet und kann im Konto SelfFramed keine Repos anlegen.
+  `git@github-selfframed:SelfFramed/moonlight-android.git` (SSH-Alias des Kontos **SelfFramed**; `git push` geht direkt).
+- gh-CLI: aktives Konto ist `krausality` und bleibt es (andere Projekte hängen daran). `SelfFramed` ist als zweites Konto
+  angemeldet. Für GitHub-API-Aufrufe im Namen von SelfFramed pro Befehl
+  `GH_TOKEN=$(gh auth token --user SelfFramed) gh … --repo SelfFramed/moonlight-android` verwenden, nie `gh auth switch`
+  dauerhaft umstellen.
 - Branches: `master` = Upstream-Spiegel (nur Fast-Forward), `main` = Fork. Upstream-Releases per Merge
   (`tools/sf/sync-upstream.sh`), nie per Rebase.
 - **Pushen, Taggen und Veröffentlichen nur mit Martins ausdrücklicher Zustimmung.** Nichts auf sein Telefon installieren

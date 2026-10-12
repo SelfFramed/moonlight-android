@@ -536,7 +536,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // [SelfFramed] Picture stage (docs/selfframed/ARCHITEKTUR.md)
         sfGrading = com.limelight.selfframed.grading.GradingController.create(this,
-                (FrameLayout) streamView.getParent(), streamView, willStreamHdr);
+                (FrameLayout) streamView.getParent(), streamView, willStreamHdr,
+                new com.limelight.selfframed.grading.GradingController.StreamHost() {
+                    @Override
+                    public boolean isInputGrabbed() {
+                        return grabbedInput;
+                    }
+
+                    @Override
+                    public void setInputGrabbed(boolean grabbed) {
+                        setInputGrabState(grabbed);
+                    }
+                });
 
         // The connection will be started when the surface gets created
         streamView.getHolder().addCallback(this);
@@ -1277,6 +1288,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         break;
 
                     default:
+                        // [SelfFramed] A picture hotkey combo ended: free the mouse for an opened panel now
+                        if (sfGrading != null) {
+                            sfGrading.onHotkeyComboReleased();
+                        }
                         break;
                 }
 

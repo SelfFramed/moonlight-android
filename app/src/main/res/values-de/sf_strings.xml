@@ -19,6 +19,8 @@
     <string name="sf_summary_grading_enabled">GPU-Stufe für Gradationskurven, Presets und Tastenkürzel. Aus = Original-Moonlight-Verhalten.</string>
     <string name="sf_title_grading_osd">Preset-Wechsel einblenden</string>
     <string name="sf_summary_grading_osd">Kurze, kontrastreiche Einblendung beim Umschalten</string>
+    <string name="sf_title_grading_start_notice">Hinweis beim Stream-Start immer zeigen</string>
+    <string name="sf_summary_grading_start_notice">Aktives Preset und das Kürzel fürs Bedienfeld. Sonst nur bei den ersten 3 Streams.</string>
     <string name="sf_title_grading_presets">Presets verwalten</string>
     <string name="sf_summary_grading_presets">Exportieren, importieren, Startwerte wiederherstellen</string>
     <string name="sf_title_grading_hotkeys">Tastenkürzel</string>

@@ -3,6 +3,15 @@
 Format: neueste Version oben. Upstream-Änderungen stehen im Upstream-Repo; hier nur Fork-Änderungen und welche
 Upstream-Version übernommen wurde.
 
+## 12.2-sf.2 (12.10.2026)
+
+Erste Rückmeldung vom Gerät (Martin, 12.10.2026: Kürzel und Bedienfeld funktionieren):
+
+- Maus im Bedienfeld: Nach Strg+Alt+Shift+P ist die Maus frei, sobald die Tasten losgelassen sind (wie Strg+Alt+Shift+Z),
+  und wird beim Schließen wieder eingefangen.
+- Hinweis beim Stream-Start nur noch bei den ersten 3 Streams; neue Einstellung „Hinweis beim Stream-Start immer
+  zeigen“.
+
 ## 12.2-sf.1 (12.10.2026, Vorabversion: noch nicht am Gerät getestet)
 
 Basis: Upstream **v12.2**.

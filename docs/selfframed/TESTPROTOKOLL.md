@@ -33,7 +33,9 @@ Einstellungen → E-Ink-Bild → Presets verwalten → Testbild öffnen
 - [ ] B4 Strg+Alt+Shift+→ / ←: Preset weiter/zurück.
 - [ ] B5 Strg+Alt+Shift+P: Bedienfeld. Tippen im Bedienfeld kommt nicht am Host an. Danach am Host prüfen: kein
       Strg/Alt/Shift hängt (z. B. in einem Texteditor tippen oder klicken).
-- [ ] B6 Bedienfeld offen, Strg+Alt+Shift+Z: Maus frei, Kurve per Maus ziehen; Strg+Alt+Shift+Z fängt sie wieder ein.
+- [ ] B6 Nach Strg+Alt+Shift+P und Loslassen: Maus frei, Kurve per Maus ziehen; Esc schließt und die Maus wirkt wieder
+      im Stream. Am Host hängt keine Taste.
+- [ ] B6b Hinweis beim Stream-Start: bei den ersten 3 Streams sichtbar, danach nicht mehr (außer mit der Einstellung).
 - [ ] B6a Eine Taste (z. B. W in einem Spiel) gedrückt halten, Bedienfeld öffnen, Taste loslassen: am Host bleibt sie nicht hängen.
 - [ ] B7 Upstream-Kürzel funktionieren unverändert: Strg+Alt+Shift+Z, C, Q.
 - [ ] B8 Stream beenden und neu starten: dasselbe Preset ist aktiv.
@@ -77,7 +79,7 @@ Gleiche Szene (z. B. Maus kreisen lassen, Video im Browser), 1600×1200, gleiche
 |---|---|---|---|---|---|---|---|
 | 12.10.2026 | 12.2-sf.1 (Debug) | Emulator API 36, x86_64, SwiftShader | A1–A4 bestanden (automatisch), A5–A8 siehe unten | – | – | – | `tools/sf/verify-gpu-stage.py`: 7 Presets × 16 Graustufen pixelgenau gegen die Original-JS-Mathematik, maximale Abweichung 0. Alle Wechsel als Neuzeichnen eines stehenden Bildes (statischer Desktop). Einblendung sichtbar. Kein Stream möglich (kein Host im Emulator). |
 | 12.10.2026 | 12.2-sf.1 → 12.2-sf.2 (Release, Testserver) | Emulator API 36 | – | – | – | – | Update-Funktion durchgängig: Dialog, einmalige Erlaubnis, Download, Prüfungen, Bestätigung, installiert (versionCode 31502). Play Protect fragte einmal (ohne Scan installiert). Lehre: Pythons HTTP/1.0-Testserver bricht im Emulator große Downloads ab, deshalb ein Keep-Alive-Testserver. |
-| – | 12.2-sf.1 | Moto G100 | offen | offen | offen | offen | noch nicht auf dem Gerät getestet |
+| 12.10.2026 | 12.2-sf.1 | Moto G100 | – | B2–B5 bestanden (Kürzel, Bedienfeld) | offen | offen | Martin: Kürzel „wunderbar“. Befunde: Maus im Bedienfeld nicht nutzbar (blieb eingefangen); Start-Hinweis bei jedem Stream störend. Beides in 12.2-sf.2 geändert. |
 
 Die automatische Prüfung (`python tools/sf/verify-gpu-stage.py <serial> <appId> <Ausgabeordner>`) deckt A1–A4 ab und
 läuft auch gegen das echte Telefon (per adb). Den Decoder-Pfad (MediaCodec → Bildstufe) kann nur Teil B am Gerät prüfen.

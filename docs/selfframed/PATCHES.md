@@ -24,7 +24,7 @@ Grundregeln:
 | 6 | `MediaCodecDecoderRenderer.java` | `configureAndStartDecoder`: `configure(format, sfOutputSurface != null ? … : renderTarget.getSurface(), …)` | Decoder rendert in die SurfaceTexture der Bildstufe. **Kritisch:** Ruft Upstream `configure` künftig an anderer Stelle auf oder nutzt `setOutputSurface`, muss jede Stelle dieselbe Auswahl treffen. | alle `configure`/`setOutputSurface`-Aufrufe prüfen |
 | 7 | `MediaCodecDecoderRenderer.java` | `cleanup()`: nach `videoDecoder.release()` → `sfOnCleanup.run()` | Bildstufe erst freigeben, wenn der Decoder ihre Surface losgelassen hat | nach jeder Decoder-Freigabe |
 | 8 | `Game.java` | Feld `sfGrading` | Controller der Bildstufe | – |
-| 9 | `Game.java` | Ende `onCreate`, vor `streamView.getHolder().addCallback(this)` | Controller erzeugen; braucht `willStreamHdr` (lokal in `onCreate`) und den FrameLayout-Elternteil der StreamView | nach der HDR-Entscheidung und vor dem Surface-Callback |
+| 9 | `Game.java` | Ende `onCreate`, vor `streamView.getHolder().addCallback(this)` | Controller erzeugen; braucht `willStreamHdr` (lokal in `onCreate`), den FrameLayout-Elternteil der StreamView und `grabbedInput`/`setInputGrabState` (StreamHost) | nach der HDR-Entscheidung und vor dem Surface-Callback |
 | 10 | `Game.java` | `surfaceChanged`, vor `decoderRenderer.setRenderTarget(holder)` | Bildstufe starten, Decoder umleiten | muss vor `conn.start` laufen |
 | 11 | `Game.java` | `surfaceDestroyed`, am Anfang | GL-Fenster zerstören, bevor die Surface verschwindet (synchron) | vor jedem Code, der die Surface freigibt |
 | 12 | `Game.java` | `handleSpecialKeys`: Zweig `specialKeyCode == androidKeyCode` | Gleiches Bild-Kürzel erneut drücken wirkt erneut (F = Vorher/Nachher) | – |
@@ -36,6 +36,7 @@ Grundregeln:
 | 18 | `Game.java` | Ende `onDestroy` | Presets speichern, Stufe freigeben (falls `cleanup()` nicht lief) | – |
 | 19 | `res/xml/preferences.xml` | erste `PreferenceCategory` `sf_category_grading`, danach `sf_category_update` | Einstellungen: Hauptschalter, Einblendung, Presets verwalten, Kürzel-Übersicht; Update-Suche | beide Kategorien oben halten |
 | 20 | `AndroidManifest.xml` | zwei `<activity>` und ein `<receiver>` am Ende von `<application>`, `REQUEST_INSTALL_PACKAGES` bei den Berechtigungen | `GradingPresetsActivity` (nicht exportiert), `GradingTestPatternActivity` (exportiert, für `adb am start` im Gerätetest), `UpdateStatusReceiver` (Ergebnis der Installations-Sitzung) | – |
+| 23 | `Game.java` | `handleSpecialKeys`: `default` im `switch (specialKeyCode)` der Aktion „alle Modifikatoren oben“ | Ende einer Bild-Kürzel-Kombination melden; der Controller gibt dann (250 ms später) die Maus fürs Bedienfeld frei | muss in diesem Zweig bleiben, sonst hängen Modifikatoren am Host |
 | 22 | `PcView.java` | `onResume`, nach `UiHelper.showDecoderCrashDialog(this)` | Update-Prüfung auf dem Startbildschirm (gedrosselt, nie im Stream) bzw. nach der Erlaubnis „Aus dieser Quelle zulassen“ weitermachen | – |
 | 21 | `README.md` | Kasten ganz oben | Hinweis auf den Fork, Links zur Doku; Upstream-Text bleibt unverändert darunter | Kasten oben halten |
 

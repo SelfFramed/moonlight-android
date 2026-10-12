@@ -36,15 +36,42 @@ import java.util.Set;
  * Game only talks to this class, through the hooks marked [SelfFramed]. Everything here runs
  * on the UI thread unless stated otherwise.
  *
- * The panel deliberately does not touch Moonlight's input grab: keys it uses never reach the
- * host, every other key (and every modifier) flows to the host as usual, so nothing can get
- * stuck there. To use the mouse in the panel, release it with Ctrl+Alt+Shift+Z as always.
+ * Mouse: opening the panel with Ctrl+Alt+Shift+P frees the mouse for the panel, but only once
+ * all modifiers are released (plus 250 ms), exactly like upstream's Ctrl+Alt+Shift+Z. Freeing it
+ * while the modifiers are still down would drop their key-ups and leave them stuck on the host.
+ * Closing the panel captures the mouse again.
  */
 public final class GradingController implements GradingEditorHost {
     /** Master switch (settings). Off = exact upstream behaviour, this class is not created. */
     public static final String PREF_ENABLED = "sf_grading_enabled";
     /** Show the short notice when the preset changes. */
     public static final String PREF_OSD = "sf_grading_osd";
+    /** Always show the notice at stream start (otherwise only for the first few streams). */
+    public static final String PREF_START_NOTICE = "sf_grading_start_notice";
+
+    private static final String UI_PREFS = "sf_grading_ui";
+    private static final String KEY_START_NOTICES = "start_notices_shown";
+    private static final int START_NOTICE_LIMIT = 3;
+    private static final int MOUSE_RELEASE_DELAY_MS = 250;
+
+    /** What the controller needs from the stream activity. */
+    public interface StreamHost {
+        boolean isInputGrabbed();
+
+        /** Captures (true) or releases (false) mouse and keyboard, like Ctrl+Alt+Shift+Z. */
+        void setInputGrabbed(boolean grabbed);
+    }
+
+    private static final StreamHost NO_STREAM = new StreamHost() {
+        @Override
+        public boolean isInputGrabbed() {
+            return false;
+        }
+
+        @Override
+        public void setInputGrabbed(boolean grabbed) {
+        }
+    };
 
     private static final int OSD_DURATION_MS = 1800;
     private static final int SAVE_DELAY_MS = 400;
@@ -54,6 +81,7 @@ public final class GradingController implements GradingEditorHost {
     private final View streamView;
     private final boolean hdrStream;
     private final boolean osdEnabled;
+    private final StreamHost streamHost;
     private final PresetStore store;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
@@ -61,6 +89,10 @@ public final class GradingController implements GradingEditorHost {
     private String unavailableReason;
     private GradingPanel panel;
     private boolean panelOpen;
+    /** The panel was opened by a hotkey; free the mouse once the combo's modifiers are up. */
+    private boolean releaseMouseWhenComboEnds;
+    /** We freed the mouse for the panel and must capture it again on close. */
+    private boolean mouseReleasedByPanel;
     /** Key codes whose key-down the panel consumed; only their key-ups are consumed too. */
     private final Set<Integer> panelKeysDown = new HashSet<>();
     private TextView osdView;
@@ -77,6 +109,16 @@ public final class GradingController implements GradingEditorHost {
         }
     };
 
+    private final Runnable releaseMouse = new Runnable() {
+        @Override
+        public void run() {
+            if (panelOpen && streamHost.isInputGrabbed()) {
+                mouseReleasedByPanel = true;
+                streamHost.setInputGrabbed(false);
+            }
+        }
+    };
+
     private final Runnable saveNow = new Runnable() {
         @Override
         public void run() {
@@ -88,27 +130,29 @@ public final class GradingController implements GradingEditorHost {
      * @return the controller, or null if the picture stage is switched off in the settings
      */
     public static GradingController create(Activity activity, FrameLayout overlayParent, View streamView,
-                                           boolean hdrStream) {
+                                           boolean hdrStream, StreamHost streamHost) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
         if (!prefs.getBoolean(PREF_ENABLED, true)) {
             LimeLog.info("SelfFramed grading: disabled in settings");
             return null;
         }
-        return new GradingController(activity, overlayParent, streamView, hdrStream, prefs.getBoolean(PREF_OSD, true));
+        return new GradingController(activity, overlayParent, streamView, hdrStream, streamHost,
+                prefs.getBoolean(PREF_OSD, true));
     }
 
     /** For the test pattern screen: always on, regardless of the stream setting. */
     public static GradingController createForPreview(Activity activity, FrameLayout overlayParent, View view) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
-        return new GradingController(activity, overlayParent, view, false, prefs.getBoolean(PREF_OSD, true));
+        return new GradingController(activity, overlayParent, view, false, NO_STREAM, prefs.getBoolean(PREF_OSD, true));
     }
 
     private GradingController(Activity activity, FrameLayout overlayParent, View streamView, boolean hdrStream,
-                              boolean osdEnabled) {
+                              StreamHost streamHost, boolean osdEnabled) {
         this.activity = activity;
         this.overlayParent = overlayParent;
         this.streamView = streamView;
         this.hdrStream = hdrStream;
+        this.streamHost = streamHost != null ? streamHost : NO_STREAM;
         this.osdEnabled = osdEnabled;
         this.store = new PresetStore(activity);
         int active = store.bundle().getActiveSlot();
@@ -301,6 +345,7 @@ public final class GradingController implements GradingEditorHost {
                     closePanel();
                 } else {
                     openPanel();
+                    releaseMouseWhenComboEnds = panelOpen && streamHost.isInputGrabbed();
                 }
                 break;
             case GradingHotkeys.ACTION_NEXT_SLOT:
@@ -311,6 +356,19 @@ public final class GradingController implements GradingEditorHost {
                 break;
             default:
                 break;
+        }
+    }
+
+    /**
+     * Game: the Ctrl+Alt+Shift combo of a picture hotkey is over (all modifiers released).
+     * Frees the mouse for a panel opened by that combo, delayed like upstream's Z so the last
+     * modifier key-up still reaches the host.
+     */
+    public void onHotkeyComboReleased() {
+        if (releaseMouseWhenComboEnds && panelOpen) {
+            releaseMouseWhenComboEnds = false;
+            uiHandler.removeCallbacks(releaseMouse);
+            uiHandler.postDelayed(releaseMouse, MOUSE_RELEASE_DELAY_MS);
         }
     }
 
@@ -452,11 +510,20 @@ public final class GradingController implements GradingEditorHost {
             return;
         }
         panelOpen = false;
+        releaseMouseWhenComboEnds = false;
+        uiHandler.removeCallbacks(releaseMouse);
         // Key-ups of keys still held go to the stream as stray key-ups, which hosts ignore
         panelKeysDown.clear();
         panel.onHidden();
         panel.view().setVisibility(View.GONE);
+        // Focus first: captured pointer events are delivered to the focused view
         streamView.requestFocus();
+        if (mouseReleasedByPanel) {
+            mouseReleasedByPanel = false;
+            if (!streamHost.isInputGrabbed()) {
+                streamHost.setInputGrabbed(true);
+            }
+        }
         uiHandler.removeCallbacks(saveNow);
         store.save();
     }
@@ -476,6 +543,16 @@ public final class GradingController implements GradingEditorHost {
     private void showStartNotice() {
         if (destroyed || panelOpen) {
             return;
+        }
+        // E-ink: every notice costs a refresh. After the first few streams it is opt-in.
+        SharedPreferences ui = activity.getSharedPreferences(UI_PREFS, Activity.MODE_PRIVATE);
+        int shown = ui.getInt(KEY_START_NOTICES, 0);
+        boolean always = PreferenceManager.getDefaultSharedPreferences(activity).getBoolean(PREF_START_NOTICE, false);
+        if (!always && shown >= START_NOTICE_LIMIT) {
+            return;
+        }
+        if (shown < START_NOTICE_LIMIT) {
+            ui.edit().putInt(KEY_START_NOTICES, shown + 1).apply();
         }
         PresetBundle b = store.bundle();
         String text = describeState();

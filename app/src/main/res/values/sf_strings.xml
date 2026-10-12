@@ -20,6 +20,8 @@
     <string name="sf_summary_grading_enabled">GPU stage for tone curves, presets and hotkeys. Off = original Moonlight behaviour.</string>
     <string name="sf_title_grading_osd">Show preset changes</string>
     <string name="sf_summary_grading_osd">Short high-contrast notice when the picture preset changes</string>
+    <string name="sf_title_grading_start_notice">Always show the notice at stream start</string>
+    <string name="sf_summary_grading_start_notice">Active preset and the panel hotkey. Otherwise shown only for the first 3 streams.</string>
     <string name="sf_title_grading_presets">Manage presets</string>
     <string name="sf_summary_grading_presets">Export, import, restore defaults</string>
     <string name="sf_title_grading_hotkeys">Hotkeys</string>

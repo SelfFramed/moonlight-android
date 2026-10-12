@@ -35,6 +35,9 @@ wieder ein, **C** blendet den Mauszeiger ein und aus.
 Jeder Wechsel zeigt oben kurz eine Einblendung (schwarz auf weiß, z. B. „3 · Papierweiß (Text)“). Abschaltbar in den
 Einstellungen. Der Wechsel wirkt sofort, auch wenn sich im Bild gerade nichts bewegt.
 
+Beim Stream-Start erscheint der Hinweis mit aktivem Preset und Strg+Alt+Shift+P nur bei den ersten 3 Streams. Danach
+nur, wenn „Hinweis beim Stream-Start immer zeigen“ eingeschaltet ist.
+
 ## 3. Bild-Bedienfeld (Strg+Alt+Shift+P)
 
 Das Bedienfeld liegt rechts über dem laufenden Stream. Jede Änderung wirkt live und wird automatisch gespeichert; es
@@ -42,8 +45,9 @@ gibt keinen Speichern-Knopf. Die Tasten, die das Bedienfeld benutzt, kommen nich
 gehaltene Tasten, Gamepad) läuft normal weiter, sodass am Host nichts hängen bleibt. Schließen mit **Esc** (oder wieder
 Strg+Alt+Shift+P).
 
-**Maus:** Das Bedienfeld lässt Moonlights Maus-Einfang unverändert. Für die Maus wie gewohnt **Strg+Alt+Shift+Z**
-drücken (Maus frei), Punkte ziehen, danach erneut Strg+Alt+Shift+Z.
+**Maus:** Sobald du nach Strg+Alt+Shift+P alle Tasten losgelassen hast, ist die Maus frei und wirkt im Bedienfeld
+(Punkte ziehen, Regler, Knöpfe); Bewegungen gehen dann nicht an den Host. Beim Schließen fängt der Stream die Maus wieder
+ein. Das ist dasselbe Verfahren wie bei Moonlights Strg+Alt+Shift+Z, deshalb bleibt am Host keine Taste hängen.
 
 **Kurve (im Mittelpunkt, beim Öffnen ausgewählt)**
 
@@ -115,6 +119,7 @@ Einstellungen → E-Ink-Bild → **Presets verwalten**:
 |---|---|
 | Bildanpassung im Stream | Hauptschalter. Aus = exakt das Verhalten des offiziellen Moonlight (kein GPU-Schritt). |
 | Preset-Wechsel einblenden | die kurze Einblendung bei Wechseln |
+| Hinweis beim Stream-Start immer zeigen | sonst nur bei den ersten 3 Streams |
 | Presets verwalten | Testbild, Export, Import, Startwerte |
 | Tastenkürzel | Übersicht |
 | Updates (SelfFramed) | automatische Update-Suche an/aus, „Jetzt nach Updates suchen“ (zeigt die installierte Version) |

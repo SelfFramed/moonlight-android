@@ -100,9 +100,12 @@ Game.onDestroy ─▶ controller.onDestroy()  (speichert, gibt die Stufe frei, f
 - Bedienfeld offen: `Game.handleKeyDown/Up` gibt zuerst an `GradingController.handleKeyEvent`. Das Bedienfeld bekommt
   jedes Key-Down außer Modifikatoren, Strg+Alt+Shift-Kombinationen und Gamepad-Tasten, dazu nur die passenden Key-Ups.
   Alles andere läuft zum Host weiter; Tasten, die vor dem Öffnen gedrückt waren, werden dort normal losgelassen.
-- Der Maus-Einfang (`grabbedInput`) wird bewusst **nicht** angefasst. Eine automatische Freigabe beim Öffnen hatte im
-  Review (12.10.2026) hängende Modifikatoren am Host erzeugt: Die Key-Ups von Strg/Alt/Shift kamen nach der Freigabe
-  nicht mehr beim Host an. Maus im Bedienfeld = Strg+Alt+Shift+Z wie bei Upstream.
+- Maus: Öffnet Strg+Alt+Shift+P das Bedienfeld, gibt der Controller die Eingabe frei (`setInputGrabState(false)`),
+  aber erst wenn alle Modifikatoren losgelassen sind, plus 250 ms. Dafür gibt es den Hook im `default`-Zweig der
+  Upstream-Aktion „alle Modifikatoren oben“, also dieselbe Stelle und Verzögerung wie Upstreams Z. So erreicht das letzte
+  Key-Up den Host noch. Eine sofortige Freigabe hatte im Review hängende Modifikatoren am Host erzeugt (12.10.2026).
+  Beim Schließen wird die Eingabe wieder eingefangen, sofern das Bedienfeld sie freigegeben hat. Gerätetest 12.10.2026:
+  Ohne Freigabe fand Martin keinen Weg, die Maus im Bedienfeld zu nutzen; daher diese Lösung.
 - Bild-Kürzel, solange Strg+Alt+Shift gehalten werden, überschreiben eine anstehende Upstream-Kombination (Z/Q/C) nicht.
 - Ist die Stufe nicht aktiv (HDR, Fehler), sagen die Kürzel per Einblendung warum, statt Wechsel vorzutäuschen.
 

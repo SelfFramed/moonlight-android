@@ -66,8 +66,12 @@ verliert, kann keine Updates mehr ausliefern: dann Neuinstallation und neue Kopp
 | Verdrahtung | `sf-signing.properties` im Repo-Wurzelordner (gitignoriert, Kopie der Datei oben) |
 | Zertifikat SHA-256 | `c226922a62a12497f065d88e5f92a39f7743e4c851acf157e6e6405aa19c59df` (öffentlich, steht auch im Release-Skript) |
 
-**Sichern:** den Ordner `C:\Users\mpp\.selfframed\keys\` zusätzlich offline ablegen (z. B. externe Platte oder
-Passwortmanager mit Dateianhang). Den Schlüssel nie ins Repo, in Issues, PRs oder Chats geben.
+**Sicherung (eingerichtet 12.10.2026):** `C:\Users\mpp\.selfframed` steht in `restic-sources.txt` beider
+`mpp backup`-Regime (Monthly und Quarterly; vorher `.bak_pre_selfframed_keys_<Zeit>` angelegt). Damit liegt der
+Schlüssel AES-256-verschlüsselt und versioniert auf zwei Offline-Platten. Zusätzliche Verschlüsselung (`mpp encrypt`),
+Post-Quanten-Verfahren oder ein Ausdruck sind bewusst nicht vorgesehen: Ein Verlust kostet nur Neuinstallation und
+Neukopplung, ein Diebstahl allein ermöglicht kein Update aufs Telefon. Den Schlüssel nie ins Repo, in Issues, PRs oder
+Chats geben.
 
 Prüfen, ob ein APK mit diesem Schlüssel signiert ist:
 

@@ -1,0 +1,220 @@
+# SelfFramed fork: build, unit tests and releases.
+# Docs: docs/selfframed/BUILD.md (CI section) and docs/selfframed/RELEASE.md.
+name: SelfFramed Build
+
+on:
+  push:
+    branches: [main, 'sync/**']
+    tags: ['v*-sf.*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sf-build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build und Unit-Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      signed: ${{ steps.signing.outputs.enabled }}
+      version: ${{ steps.collect.outputs.version }}
+      artifact: ${{ steps.collect.outputs.artifact }}
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Accept Android SDK licenses
+        # AGP installs the pinned NDK and missing platforms on demand, but only with accepted licenses.
+        run: |
+          sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -z "$sdk" ]; then echo "::error::ANDROID_HOME is not set on this runner"; exit 1; fi
+          # 'yes' gets SIGPIPE when sdkmanager exits; keep that from failing the pipeline.
+          (yes || true) | "$sdk/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+
+      - name: Unit tests and debug build
+        run: ./gradlew --no-daemon testNonRootDebugUnitTest assembleNonRootDebug
+
+      - name: Upload test reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ github.run_id }}
+          path: app/build/reports/tests/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Detect signing secrets and decode keystore
+        id: signing
+        env:
+          SF_KEYSTORE_BASE64: ${{ secrets.SF_KEYSTORE_BASE64 }}
+          SF_KEYSTORE_PASSWORD: ${{ secrets.SF_KEYSTORE_PASSWORD }}
+          SF_KEY_ALIAS: ${{ secrets.SF_KEY_ALIAS }}
+          SF_KEY_PASSWORD: ${{ secrets.SF_KEY_PASSWORD }}
+        run: |
+          if [ -n "$SF_KEYSTORE_BASE64" ] && [ -n "$SF_KEYSTORE_PASSWORD" ] \
+             && [ -n "$SF_KEY_ALIAS" ] && [ -n "$SF_KEY_PASSWORD" ]; then
+            printf '%s' "$SF_KEYSTORE_BASE64" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/sf-release.jks"
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "Signing secrets present: release build will be signed."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Signing secrets (SF_KEYSTORE_BASE64, SF_KEYSTORE_PASSWORD, SF_KEY_ALIAS, SF_KEY_PASSWORD) not available; release build skipped."
+          fi
+
+      - name: Release build (signed)
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          SF_KEYSTORE_FILE: ${{ runner.temp }}/sf-release.jks
+          SF_KEYSTORE_PASSWORD: ${{ secrets.SF_KEYSTORE_PASSWORD }}
+          SF_KEY_ALIAS: ${{ secrets.SF_KEY_ALIAS }}
+          SF_KEY_PASSWORD: ${{ secrets.SF_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleNonRootRelease
+
+      - name: Remove decoded keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sf-release.jks"
+
+      - name: Collect APKs
+        id: collect
+        env:
+          SIGNED: ${{ steps.signing.outputs.enabled }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          version_of() {
+            jq -r '.elements[0].versionName // empty' "$1/output-metadata.json" 2>/dev/null || true
+          }
+          mkdir -p dist
+          dbg_dir=app/build/outputs/apk/nonRoot/debug
+          dbg_apks=("$dbg_dir"/*.apk)
+          if [ ${#dbg_apks[@]} -eq 0 ]; then echo "::error::no debug APK in $dbg_dir"; exit 1; fi
+          dbg_version=$(version_of "$dbg_dir"); dbg_version=${dbg_version:-unknown}
+          cp "${dbg_apks[0]}" "dist/moonlight-eink-${dbg_version}-nonRoot-debug.apk"
+          version=$dbg_version
+          if [ "$SIGNED" = "true" ]; then
+            rel_dir=app/build/outputs/apk/nonRoot/release
+            rel_apks=()
+            for f in "$rel_dir"/*.apk; do
+              case "$f" in *-unsigned.apk) ;; *) rel_apks+=("$f") ;; esac
+            done
+            if [ ${#rel_apks[@]} -eq 0 ]; then
+              echo "::error::signing secrets are set, but no signed release APK was produced (check the signing setup in app/selfframed.gradle)"
+              exit 1
+            fi
+            rel_version=$(version_of "$rel_dir"); rel_version=${rel_version:-unknown}
+            cp "${rel_apks[0]}" "dist/moonlight-eink-${rel_version}-nonRoot-release.apk"
+            version=$rel_version
+          fi
+          ls -l dist
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "artifact=moonlight-eink-${version}-${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+          {
+            echo "### APKs"
+            echo
+            for f in dist/*.apk; do echo "- \`${f#dist/}\`"; done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check that the tag matches versionName
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ steps.collect.outputs.version }}
+        run: |
+          # versionName = <upstream versionName>-sf.<sf.revision>; the tag must be "v" + versionName.
+          # A debug-only build may carry a suffix after the version (e.g. "-debug").
+          want="${TAG#v}"
+          case "$VERSION" in
+            "$want"|"$want"-*) echo "Tag $TAG matches versionName $VERSION." ;;
+            *) echo "::error::Tag $TAG does not match versionName $VERSION. Check sf.revision in app/selfframed.properties (docs/selfframed/RELEASE.md)."; exit 1 ;;
+          esac
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.collect.outputs.artifact }}
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: GitHub-Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref_name, '-sf.') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Download APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact }}
+          path: dist
+
+      - name: Prepare release notes
+        id: notes
+        env:
+          TAG: ${{ github.ref_name }}
+          SIGNED: ${{ needs.build.outputs.signed }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          upstream_version="${TAG#v}"
+          upstream_version="${upstream_version%%-sf.*}"
+          body="$RUNNER_TEMP/release-body.md"
+          if [ "$SIGNED" = "true" ]; then
+            files="dist/*-nonRoot-release.apk"
+            prerelease=false
+          else
+            files="dist/*-nonRoot-debug.apk"
+            prerelease=true
+          fi
+          {
+            echo "Moonlight E-Ink ${TAG#v}: SelfFramed-Fork von [Moonlight Android](https://github.com/moonlight-stream/moonlight-android), Upstream-Basis ${upstream_version}."
+            echo
+            echo "- Bedienung: [docs/selfframed/BEDIENUNG.md](${REPO_URL}/blob/${TAG}/docs/selfframed/BEDIENUNG.md)"
+            echo "- Installation, Updates (Obtainium) und Signatur: [docs/selfframed/RELEASE.md](${REPO_URL}/blob/${TAG}/docs/selfframed/RELEASE.md)"
+            echo
+            if [ "$SIGNED" = "true" ]; then
+              echo "Das APK \`*-nonRoot-release.apk\` ist mit dem SelfFramed-Release-Schlüssel signiert (applicationId \`com.selfframed.moonlight\`)."
+              echo "Die App läuft neben dem offiziellen Moonlight. Nach der Erstinstallation einmalig per PIN mit Sunshine koppeln."
+            else
+              echo "**Achtung:** Für diesen Lauf waren keine Signatur-Secrets hinterlegt. Angehängt ist nur das Debug-APK"
+              echo "(applicationId \`com.selfframed.moonlight.debug\`, Debug-Schlüssel des CI-Runners). Es taugt zum Testen,"
+              echo "nicht für Updates per Obtainium. Deshalb ist dieser Release als Vorabversion markiert."
+            fi
+            echo
+            echo "Lizenz: GPLv3 wie Upstream. Quelltext: ${REPO_URL}/tree/${TAG}"
+          } > "$body"
+          echo "body=$body" >> "$GITHUB_OUTPUT"
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          ls -l dist
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Moonlight E-Ink ${{ github.ref_name }}
+          body_path: ${{ steps.notes.outputs.body }}
+          files: ${{ steps.notes.outputs.files }}
+          prerelease: ${{ steps.notes.outputs.prerelease }}
+          fail_on_unmatched_files: true

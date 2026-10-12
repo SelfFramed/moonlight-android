@@ -1,0 +1,371 @@
+# SelfFramed upstream watcher.
+# Weekly: fast-forwards the 'master' mirror to upstream master, and if a new upstream release tag
+# (vX.Y[.Z]) is not yet merged into 'main', merges it on a branch sync/upstream-<tag>, builds and
+# tests it, and opens a PR. On merge conflicts it opens (or updates) an issue instead.
+# Runbook: docs/selfframed/UPSTREAM_SYNC.md
+name: SelfFramed Upstream-Waechter
+
+on:
+  schedule:
+    - cron: '17 5 * * 1'   # Mondays 05:17 UTC
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Upstream-Release-Tag, z. B. v12.3 (leer = neuester Release-Tag)'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: sf-upstream-watch
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_URL: https://github.com/moonlight-stream/moonlight-android.git
+  TAG_RE: '^v[0-9]+(\.[0-9]+)*$'
+  MAIN_BRANCH: main
+  MIRROR_BRANCH: master
+  # gh would otherwise prefer the 'upstream' remote as base repository.
+  GH_REPO: ${{ github.repository }}
+  GH_TOKEN: ${{ github.token }}
+  RUNBOOK_URL: ${{ github.server_url }}/${{ github.repository }}/blob/main/docs/selfframed/UPSTREAM_SYNC.md
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout main (full history)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git and fetch upstream
+        run: |
+          set -euo pipefail
+          git config user.name "SelfFramed Upstream-Waechter"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream "$UPSTREAM_URL"
+          git remote set-url --push upstream DISABLED_do_not_push_to_upstream
+          git fetch --no-tags upstream "+refs/heads/master:refs/remotes/upstream/master"
+
+      - name: Fast-forward master mirror
+        run: |
+          set -euo pipefail
+          up=$(git rev-parse refs/remotes/upstream/master)
+          if cur=$(git rev-parse -q --verify "refs/remotes/origin/$MIRROR_BRANCH"); then
+            if [ "$cur" = "$up" ]; then
+              echo "Mirror $MIRROR_BRANCH is up to date (${up:0:10})."
+              exit 0
+            fi
+            if ! git merge-base --is-ancestor "$cur" "$up"; then
+              echo "::warning::origin/$MIRROR_BRANCH (${cur:0:10}) is not an ancestor of upstream/master (${up:0:10}). The mirror was NOT updated (never forced). See the runbook."
+              exit 0
+            fi
+          fi
+          # Plain push: the server rejects anything that is not a fast-forward.
+          if git push origin "$up:refs/heads/$MIRROR_BRANCH"; then
+            echo "Mirror $MIRROR_BRANCH fast-forwarded to ${up:0:10}." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Could not push $MIRROR_BRANCH (GITHUB_TOKEN cannot push commits that change .github/workflows). Update the mirror locally, see the runbook."
+          fi
+
+      - name: Determine upstream release tag
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG:-}" ]; then
+            if ! printf '%s\n' "$INPUT_TAG" | grep -Eq "$TAG_RE"; then
+              echo "::error::'$INPUT_TAG' is not an upstream release tag (pattern $TAG_RE)."
+              exit 1
+            fi
+            if ! git ls-remote --exit-code --tags --refs upstream "refs/tags/$INPUT_TAG" > /dev/null; then
+              echo "::error::Tag $INPUT_TAG does not exist upstream."
+              exit 1
+            fi
+            tag=$INPUT_TAG
+          else
+            tag=$(git ls-remote --tags --refs upstream | sed 's#.*refs/tags/##' | grep -E "$TAG_RE" | sort -V | tail -n 1 || true)
+          fi
+          if [ -z "$tag" ]; then
+            echo "::error::No upstream release tag found."
+            exit 1
+          fi
+          git fetch --no-tags upstream "+refs/tags/$tag:refs/tags/$tag"
+          branch="sync/upstream-$tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+          skip() {
+            echo "$1" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "action=skip" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+          if git merge-base --is-ancestor "refs/tags/$tag^{commit}" "refs/remotes/origin/$MAIN_BRANCH"; then
+            skip "Upstream $tag is already contained in $MAIN_BRANCH. Nothing to do."
+          fi
+          if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+            skip "Branch $branch already exists. Nothing to do."
+          fi
+          prs=$(gh pr list --state all --head "$branch" --json number,state --jq '.[] | "#\(.number) (\(.state))"')
+          if [ -n "$prs" ]; then
+            skip "A pull request for $branch already exists: $prs. Nothing to do."
+          fi
+          echo "New upstream release $tag: merging." | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "action=merge" >> "$GITHUB_OUTPUT"
+
+      - name: Merge upstream tag into sync branch
+        id: merge
+        if: steps.tag.outputs.action == 'merge'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          BRANCH: ${{ steps.tag.outputs.branch }}
+        run: |
+          set -euo pipefail
+          git log --oneline --no-merges "refs/remotes/origin/$MAIN_BRANCH..refs/tags/$TAG" > "$RUNNER_TEMP/changelog.txt"
+          echo "Upstream commits: $(wc -l < "$RUNNER_TEMP/changelog.txt")"
+          git switch -c "$BRANCH"
+          if git merge --no-ff --no-edit -m "Merge upstream $TAG into SelfFramed main" "refs/tags/$TAG"; then
+            echo "result=merged" >> "$GITHUB_OUTPUT"
+          elif git rev-parse -q --verify MERGE_HEAD > /dev/null; then
+            git diff --name-only --diff-filter=U > "$RUNNER_TEMP/conflicts.txt"
+            git merge --abort
+            echo "Merge conflicts in:"; cat "$RUNNER_TEMP/conflicts.txt"
+            echo "result=conflict" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::git merge failed without conflicts."
+            exit 1
+          fi
+
+      - name: Open or update conflict issue
+        if: steps.merge.outputs.result == 'conflict'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          title="Upstream $TAG: Merge-Konflikte"
+          body="$RUNNER_TEMP/issue.md"
+          mentioned() {  # prints ja / nur Dateiname / nein / n/a
+            if [ ! -f "$1" ]; then echo "n/a"
+            elif grep -qF -- "$2" "$1"; then echo "ja"
+            elif grep -qF -- "${2##*/}" "$1"; then echo "nur Dateiname"
+            else echo "nein"; fi
+          }
+          {
+            echo "Der Upstream-Wächter konnte \`$TAG\` (moonlight-stream/moonlight-android) nicht automatisch in \`$MAIN_BRANCH\` mergen."
+            echo "Der Merge wurde abgebrochen; es wurde kein Branch gepusht."
+            echo
+            echo "- Lauf: $RUN_URL ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+            echo "- Upstream-Commits seit \`$MAIN_BRANCH\`: $(wc -l < "$RUNNER_TEMP/changelog.txt")"
+            echo "- Runbook: $RUNBOOK_URL"
+            echo
+            echo "### Dateien mit Konflikten"
+            echo
+            echo "| Datei | in PATCHES.md | in hooks.txt |"
+            echo "|---|---|---|"
+            while IFS= read -r f; do
+              [ -n "$f" ] || continue
+              echo "| \`$f\` | $(mentioned docs/selfframed/PATCHES.md "$f") | $(mentioned tools/sf/hooks.txt "$f") |"
+            done < "$RUNNER_TEMP/conflicts.txt"
+            echo
+            echo "### Vorgehen für Claude (lokal, siehe Runbook)"
+            echo
+            echo "1. \`git switch main && git pull --ff-only origin main\`"
+            echo "2. Remote prüfen: \`git remote get-url upstream\` (fehlt er: \`git remote add upstream $UPSTREAM_URL\`)"
+            echo "3. \`bash tools/sf/sync-upstream.sh $TAG\`"
+            echo "4. Konflikte nach den Konfliktregeln im Runbook lösen: Upstream gewinnt überall außer in \`[SelfFramed]\`-Blöcken;"
+            echo "   jeden Eingriff nach seiner Absicht neu einsetzen (\`docs/selfframed/PATCHES.md\`)."
+            echo "5. Gelöste Dateien mit \`git add\` vormerken, dann \`bash tools/sf/sync-upstream.sh --continue\`"
+            echo "6. Bauen und testen (\`tools/sf/build-lowprio.ps1 -Wait\`), PATCHES.md und CHANGELOG aktualisieren."
+            echo "7. Nach Martins Freigabe pushen und einen PR nach \`main\` öffnen; im PR auf dieses Issue verweisen (\`Closes #<Nummer>\`)."
+            echo
+            echo "<details><summary>Upstream-Änderungen (git log --oneline --no-merges origin/main..$TAG)</summary>"
+            echo
+            echo '```text'
+            head -n 300 "$RUNNER_TEMP/changelog.txt"
+            if [ "$(wc -l < "$RUNNER_TEMP/changelog.txt")" -gt 300 ]; then echo "... (gekürzt)"; fi
+            echo '```'
+            echo
+            echo "</details>"
+          } > "$body"
+
+          num=$(gh issue list --state all --limit 200 --json number,title \
+                  --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)
+          if [ -n "$num" ]; then
+            gh issue edit "$num" --body-file "$body"
+            echo "Updated issue #$num: $title" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            gh issue create --title "$title" --body-file "$body"
+            echo "Opened issue: $title" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Reset sf.revision to 1
+        id: revision
+        if: steps.merge.outputs.result == 'merged'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          props=app/selfframed.properties
+          if [ -f "$props" ] && grep -Eq '^[[:space:]]*sf\.revision[[:space:]]*[=:]' "$props"; then
+            sed -i -E 's/^([[:space:]]*sf\.revision[[:space:]]*[=:][[:space:]]*)[0-9]+/\11/' "$props"
+            if git diff --quiet -- "$props"; then
+              echo "state=unchanged" >> "$GITHUB_OUTPUT"
+            else
+              git commit -q -m "Reset sf.revision to 1 for upstream $TAG" -- "$props"
+              echo "state=reset" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "::warning::$props or its sf.revision entry is missing."
+            echo "state=missing" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check hooks
+        id: hooks
+        if: steps.merge.outputs.result == 'merged'
+        run: |
+          set +e
+          bash tools/sf/check-hooks.sh > "$RUNNER_TEMP/hooks.log" 2>&1
+          rc=$?
+          cat "$RUNNER_TEMP/hooks.log"
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+
+      # PRs and pushes made with GITHUB_TOKEN do not trigger other workflows, so the sync PR gets
+      # no run of sf-build.yml. This job therefore builds and tests the merged state itself.
+      - name: Update submodules to the merged state
+        if: steps.merge.outputs.result == 'merged'
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive
+
+      - name: Set up JDK 21
+        if: steps.merge.outputs.result == 'merged'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        if: steps.merge.outputs.result == 'merged'
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Accept Android SDK licenses
+        if: steps.merge.outputs.result == 'merged'
+        run: |
+          sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          (yes || true) | "$sdk/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+
+      - name: Build and unit tests
+        id: build
+        if: steps.merge.outputs.result == 'merged'
+        run: |
+          set +e
+          ./gradlew --no-daemon testNonRootDebugUnitTest assembleNonRootDebug 2>&1 | tee "$RUNNER_TEMP/build.log"
+          rc=${PIPESTATUS[0]}
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+
+      - name: Upload debug APK
+        if: steps.merge.outputs.result == 'merged' && steps.build.outputs.rc == '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sync-upstream-${{ steps.tag.outputs.tag }}-debug-apk
+          path: app/build/outputs/apk/nonRoot/debug/*.apk
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Push sync branch
+        if: steps.merge.outputs.result == 'merged'
+        env:
+          BRANCH: ${{ steps.tag.outputs.branch }}
+        run: |
+          set -euo pipefail
+          if ! git push origin "refs/heads/$BRANCH:refs/heads/$BRANCH"; then
+            echo "::error::Push of $BRANCH failed. If upstream changed .github/workflows, GITHUB_TOKEN may not push it: run tools/sf/sync-upstream.sh locally (runbook)."
+            exit 1
+          fi
+
+      - name: Open pull request
+        if: steps.merge.outputs.result == 'merged'
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          BRANCH: ${{ steps.tag.outputs.branch }}
+          HOOKS_RC: ${{ steps.hooks.outputs.rc }}
+          BUILD_RC: ${{ steps.build.outputs.rc }}
+          REVISION: ${{ steps.revision.outputs.state }}
+        run: |
+          set -euo pipefail
+          verdict() { if [ "$1" = "0" ]; then echo "bestanden"; else echo "**FEHLGESCHLAGEN** (Exit-Code $1)"; fi; }
+          case "$REVISION" in
+            reset) rev_text="auf 1 zurückgesetzt (eigener Commit)" ;;
+            unchanged) rev_text="stand bereits auf 1" ;;
+            *) rev_text="**nicht gefunden** (\`app/selfframed.properties\` prüfen)" ;;
+          esac
+          n=$(wc -l < "$RUNNER_TEMP/changelog.txt")
+          body="$RUNNER_TEMP/pr.md"
+          {
+            echo "Automatisch erstellt vom Upstream-Wächter: $RUN_URL"
+            echo
+            echo "| Prüfung | Ergebnis |"
+            echo "|---|---|"
+            echo "| Merge von \`$TAG\` | ohne Konflikte |"
+            echo "| \`sf.revision\` | $rev_text |"
+            echo "| Hook-Prüfung (\`tools/sf/check-hooks.sh\`) | $(verdict "$HOOKS_RC") |"
+            echo "| Build + Unit-Tests (\`testNonRootDebugUnitTest assembleNonRootDebug\`) | $(verdict "$BUILD_RC") |"
+            echo
+            echo "Dieser PR löst keinen eigenen CI-Lauf aus (mit GITHUB_TOKEN erstellt); die Tabelle oben ist das CI-Ergebnis."
+            echo "Neuer Build bei Bedarf: Actions → SelfFramed Build → Run workflow → Branch \`$BRANCH\`."
+            echo "Das Debug-APK liegt als Artefakt am Lauf (sofern der Build bestanden hat)."
+            echo
+            echo "### Vor dem Merge (Runbook: $RUNBOOK_URL)"
+            echo
+            echo "- [ ] Upstream-Änderungen gelesen; betrifft etwas Decoder, Surface oder Frame-Pacing, dann ARCHITEKTUR.md erneut prüfen"
+            echo "- [ ] Gerätetest nach \`docs/selfframed/TESTPROTOKOLL.md\`"
+            echo "- [ ] \`docs/selfframed/PATCHES.md\` und CHANGELOG aktualisiert"
+            echo "- [ ] Mergen mit **Create a merge commit** (kein Squash, kein Rebase, sonst gilt \`$TAG\` nicht als übernommen)"
+            echo
+            echo "### Upstream-Änderungen ($n Commits, \`git log --oneline --no-merges origin/main..$TAG\`)"
+            echo
+            echo '```text'
+            head -n 300 "$RUNNER_TEMP/changelog.txt"
+            if [ "$n" -gt 300 ]; then echo "... (gekürzt)"; fi
+            echo '```'
+            echo
+            echo "<details><summary>Ausgabe der Hook-Prüfung</summary>"
+            echo
+            echo '```text'
+            cut -c1-300 "$RUNNER_TEMP/hooks.log" 2>/dev/null || echo "(kein Log)"
+            echo '```'
+            echo
+            echo "</details>"
+            if [ "$BUILD_RC" != "0" ]; then
+              echo
+              echo "<details><summary>Build-Log (letzte 80 Zeilen)</summary>"
+              echo
+              echo '```text'
+              tail -n 80 "$RUNNER_TEMP/build.log" 2>/dev/null | cut -c1-300 || echo "(kein Log)"
+              echo '```'
+              echo
+              echo "</details>"
+            fi
+          } > "$body"
+          url=$(gh pr create --base "$MAIN_BRANCH" --head "$BRANCH" \
+                  --title "Upstream $TAG in main übernehmen" --body-file "$body")
+          echo "Opened pull request: $url" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail if hook check or build failed
+        if: steps.merge.outputs.result == 'merged' && (steps.hooks.outputs.rc != '0' || steps.build.outputs.rc != '0')
+        env:
+          HOOKS_RC: ${{ steps.hooks.outputs.rc }}
+          BUILD_RC: ${{ steps.build.outputs.rc }}
+        run: |
+          echo "::error::Hook check (rc=$HOOKS_RC) or build (rc=$BUILD_RC) failed. Details in the PR."
+          exit 1

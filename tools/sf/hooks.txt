@@ -1,0 +1,22 @@
+# SelfFramed hook manifest
+#
+# Every upstream file that carries SelfFramed edits is listed here, together with the minimum
+# number of lines that contain the literal tag [SelfFramed]. tools/sf/check-hooks.sh fails if a
+# listed file is missing or has fewer marker lines than listed, and warns about marker lines in
+# upstream files that are not listed.
+#
+# Format: <repo-relative-path><TAB><minimum number of [SelfFramed] marker lines>
+# Lines starting with # and empty lines are ignored. CRLF line endings are tolerated.
+#
+# Keep this file in sync with docs/selfframed/PATCHES.md: one entry per patched upstream file.
+# The count is the number of LINES containing the tag (two tags on one line count once).
+# Fork-owned files (docs/, tools/sf/, .github/, CLAUDE.md, com/limelight/selfframed/**,
+# sf_* resources, app/selfframed.*) are not listed here.
+#
+.gitignore	1
+app/build.gradle	1
+app/src/main/AndroidManifest.xml	2
+app/src/main/java/com/limelight/Game.java	11
+app/src/main/java/com/limelight/binding/video/MediaCodecDecoderRenderer.java	4
+app/src/main/res/xml/preferences.xml	1
+.gitattributes	1

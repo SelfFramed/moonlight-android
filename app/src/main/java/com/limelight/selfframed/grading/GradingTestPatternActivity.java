@@ -111,6 +111,13 @@ public class GradingTestPatternActivity extends Activity implements SurfaceHolde
             return true;
         }
         int code = event.getKeyCode();
+        if (code == KeyEvent.KEYCODE_ESCAPE) {
+            // Not every keyboard maps Escape to Back, so close explicitly (the panel took it if open)
+            if (event.getAction() == KeyEvent.ACTION_UP) {
+                finish();
+            }
+            return true;
+        }
         if (KeyEvent.isModifierKey(code) || !controller.isHotkey(code)) {
             return false;
         }

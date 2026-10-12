@@ -13,7 +13,7 @@
 # Fork-owned files (docs/, tools/sf/, .github/, CLAUDE.md, com/limelight/selfframed/**,
 # sf_* resources, app/selfframed.*) are not listed here.
 #
-.gitignore	1
+.gitignore	2
 app/build.gradle	1
 app/src/main/AndroidManifest.xml	2
 app/src/main/java/com/limelight/Game.java	11

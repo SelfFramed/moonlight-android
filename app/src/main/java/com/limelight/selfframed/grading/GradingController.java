@@ -3,6 +3,7 @@ package com.limelight.selfframed.grading;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
@@ -13,6 +14,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -115,6 +117,13 @@ public final class GradingController implements GradingEditorHost {
         this.store = new PresetStore(activity);
         int active = store.bundle().getActiveSlot();
         this.lastPresetSlot = PresetBundle.isPresetSlot(active) ? active : 1;
+
+        // SurfaceView defaults to RGB_565. The decoder overrides that with its own buffers, but our
+        // GL output should be explicitly 8 bit per channel (opaque). Must happen before the
+        // surface exists, which is why it is done here (Game creates us in onCreate).
+        if (!hdrStream && streamView instanceof SurfaceView) {
+            ((SurfaceView) streamView).getHolder().setFormat(PixelFormat.RGBX_8888);
+        }
     }
 
     // ------------------------------------------------------------------------------------

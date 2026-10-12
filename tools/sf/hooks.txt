@@ -20,3 +20,4 @@ app/src/main/java/com/limelight/Game.java	11
 app/src/main/java/com/limelight/binding/video/MediaCodecDecoderRenderer.java	4
 app/src/main/res/xml/preferences.xml	1
 .gitattributes	1
+README.md	1

@@ -1,3 +1,12 @@
+<!-- [SelfFramed] Fork notice; the upstream README follows unchanged below -->
+> **This is the SelfFramed fork: Moonlight E-Ink.** It adds a GPU picture stage for e-ink displays (tone curves, presets,
+> hotkeys, an in-stream curve editor) and installs next to the official app (`com.selfframed.moonlight`). Built for the
+> [SelfFramed](https://github.com/SelfFramed/SelfFramed) e-ink lapdock. Documentation (German):
+> [user guide](docs/selfframed/BEDIENUNG.md) · [architecture](docs/selfframed/ARCHITEKTUR.md) ·
+> [upstream sync](docs/selfframed/UPSTREAM_SYNC.md) · [changes to upstream files](docs/selfframed/PATCHES.md).
+> Upstream: [moonlight-stream/moonlight-android](https://github.com/moonlight-stream/moonlight-android), GPLv3. Please report
+> fork-specific issues here, not upstream.
+
 # Moonlight Android
 
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/232a8tadrrn8jv0k/branch/master?svg=true)](https://ci.appveyor.com/project/cgutman/moonlight-android/branch/master)

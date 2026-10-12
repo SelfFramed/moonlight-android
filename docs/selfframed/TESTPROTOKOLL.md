@@ -66,4 +66,8 @@ Gleiche Szene (z. B. Maus kreisen lassen, Video im Browser), 1600×1200, gleiche
 
 | Datum | Version | Gerät/ROM | A | B | C | D | Notizen |
 |---|---|---|---|---|---|---|---|
+| 12.10.2026 | 12.2-sf.1 (Debug) | Emulator API 36, x86_64, SwiftShader | A1–A4 bestanden (automatisch), A5–A8 siehe unten | – | – | – | `tools/sf/verify-gpu-stage.py`: 7 Presets × 16 Graustufen pixelgenau gegen die Original-JS-Mathematik, maximale Abweichung 0. Alle Wechsel als Neuzeichnen eines stehenden Bildes (statischer Desktop). Einblendung sichtbar. Kein Stream möglich (kein Host im Emulator). |
 | – | 12.2-sf.1 | Moto G100 | offen | offen | offen | offen | noch nicht auf dem Gerät getestet |
+
+Die automatische Prüfung (`python tools/sf/verify-gpu-stage.py <serial> <appId> <Ausgabeordner>`) deckt A1–A4 ab und
+läuft auch gegen das echte Telefon (per adb). Den Decoder-Pfad (MediaCodec → Bildstufe) kann nur Teil B am Gerät prüfen.

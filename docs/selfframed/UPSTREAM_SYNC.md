@@ -76,6 +76,32 @@ Angabe außerdem das Upstream-Repository als Ziel. Deshalb bei jedem gh-Befehl `
 GitHub deaktiviert zeitgesteuerte Workflows in öffentlichen Repositories nach 60 Tagen ohne Aktivität. Dann den Wächter im
 Actions-Tab wieder aktivieren.
 
+### Variante: Claude erledigt die GitHub-Schritte (empfohlen)
+
+Martin meldet das Konto `SelfFramed` **zusätzlich** in der gh-CLI an. Danach stellt er das aktive Konto wieder auf
+`krausality`, weil andere Projekte davon ausgehen:
+
+```bash
+gh auth login --hostname github.com --git-protocol ssh --web   # im Browser als SelfFramed anmelden (ggf. privates Fenster)
+gh auth switch --user krausality
+```
+
+Claude arbeitet dann pro Befehl mit dem Token von `SelfFramed`, ohne das aktive Konto umzustellen:
+
+```bash
+export GH_TOKEN=$(gh auth token --user SelfFramed)
+gh repo fork moonlight-stream/moonlight-android --clone=false --default-branch-only
+git push origin main master
+gh repo edit SelfFramed/moonlight-android --default-branch main --enable-issues
+gh api -X PUT repos/SelfFramed/moonlight-android/actions/permissions -F enabled=true -f allowed_actions=all
+gh api -X PUT repos/SelfFramed/moonlight-android/actions/permissions/workflow \
+  -f default_workflow_permissions=read -F can_approve_pull_request_reviews=true
+unset GH_TOKEN
+```
+
+Signatur-Secrets (`RELEASE.md`) lädt Claude nur hoch, wenn Martin dem Hochladen des Release-Schlüssels ausdrücklich
+zugestimmt hat.
+
 ## 4. Ablauf A: Der Wächter hat einen PR geöffnet
 
 1. Tabelle im PR lesen. Sind Hook-Prüfung oder Build fehlgeschlagen, den Branch lokal holen und reparieren:

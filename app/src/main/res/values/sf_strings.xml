@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SelfFramed fork: strings of the grading pipeline (presets, settings, on-screen notices).
+     German translations: values-de/sf_strings.xml. -->
+<resources>
+    <string-array name="sf_builtin_preset_names">
+        <item>Film &amp; Game</item>
+        <item>Lift Shadows</item>
+        <item>Paper White (Text)</item>
+        <item>High Contrast</item>
+        <item>Black &amp; White Threshold</item>
+        <item>Inverted</item>
+        <item>Custom 7</item>
+        <item>Custom 8</item>
+        <item>Custom 9</item>
+    </string-array>
+
+    <!-- Settings -->
+    <string name="sf_category_grading">E-ink picture (SelfFramed)</string>
+    <string name="sf_title_grading_enabled">Picture adjustments in the stream</string>
+    <string name="sf_summary_grading_enabled">GPU stage for tone curves, presets and hotkeys. Off = original Moonlight behaviour.</string>
+    <string name="sf_title_grading_osd">Show preset changes</string>
+    <string name="sf_summary_grading_osd">Short high-contrast notice when the picture preset changes</string>
+    <string name="sf_title_grading_presets">Manage presets</string>
+    <string name="sf_summary_grading_presets">Export, import, restore defaults</string>
+    <string name="sf_title_grading_hotkeys">Hotkeys</string>
+    <string name="sf_summary_grading_hotkeys">Ctrl+Alt+Shift + 1–9 preset · 0 neutral · F filter on/off · P picture panel · ← / → previous / next preset</string>
+
+    <!-- On-screen notices -->
+    <string name="sf_osd_preset">%1$d · %2$s</string>
+    <string name="sf_osd_neutral">Neutral (original picture)</string>
+    <string name="sf_osd_filter_on">Filter on · %1$s</string>
+    <string name="sf_osd_filter_off">Filter off (original picture)</string>
+    <string name="sf_osd_unavailable">Picture adjustments unavailable: %1$s</string>
+    <string name="sf_osd_hdr">HDR stream: picture adjustments are off</string>
+    <string name="sf_osd_start_hint">Ctrl+Alt+Shift+P: picture panel</string>
+
+    <!-- Preset management screen -->
+    <string name="sf_presets_title">Picture presets</string>
+    <string name="sf_presets_test_pattern">Open test pattern (tune presets on the panel)</string>
+    <string name="sf_presets_export">Export to file</string>
+    <string name="sf_presets_import">Import from file</string>
+    <string name="sf_presets_reset">Restore defaults</string>
+    <string name="sf_presets_reset_confirm">Replace all nine presets with the defaults?</string>
+    <string name="sf_presets_exported">Presets exported</string>
+    <string name="sf_presets_imported">%1$d preset(s) imported</string>
+    <string name="sf_presets_import_failed">Import failed: %1$s</string>
+    <string name="sf_presets_reset_done">Defaults restored</string>
+    <string name="sf_presets_info">Presets are edited live during a stream (Ctrl+Alt+Shift+P). Here you can back them up, restore them or reset them. Import accepts a full export or a single preset, including the saved state of the game-curves / discord-stream-filter userscripts (goes into the active slot, or slot 7 while neutral is active).</string>
+
+    <!-- Performance overlay -->
+    <string name="sf_perf_line">Picture stage: %1$s · %2$s</string>
+    <string name="sf_perf_off">Picture stage: off (%1$s)</string>
+</resources>

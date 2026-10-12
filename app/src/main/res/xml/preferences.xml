@@ -2,6 +2,32 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:seekbar="http://schemas.moonlight-stream.com/apk/res/seekbar">
 
+    <!-- [SelfFramed] Picture stage for the e-ink lapdock (docs/selfframed/BEDIENUNG.md) -->
+    <PreferenceCategory android:title="@string/sf_category_grading"
+        android:key="sf_category_grading">
+        <CheckBoxPreference
+            android:key="sf_grading_enabled"
+            android:title="@string/sf_title_grading_enabled"
+            android:summary="@string/sf_summary_grading_enabled"
+            android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="sf_grading_osd"
+            android:dependency="sf_grading_enabled"
+            android:title="@string/sf_title_grading_osd"
+            android:summary="@string/sf_summary_grading_osd"
+            android:defaultValue="true" />
+        <com.limelight.selfframed.grading.SfPresetsPreference
+            android:key="sf_grading_presets"
+            android:dependency="sf_grading_enabled"
+            android:title="@string/sf_title_grading_presets"
+            android:summary="@string/sf_summary_grading_presets" />
+        <Preference
+            android:key="sf_grading_hotkeys"
+            android:selectable="false"
+            android:title="@string/sf_title_grading_hotkeys"
+            android:summary="@string/sf_summary_grading_hotkeys" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/category_basic_settings"
         android:key="category_basic_settings">
         <ListPreference

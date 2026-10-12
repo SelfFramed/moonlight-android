@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SelfFramed-Fork: Texte der Bildstufe (Presets, Einstellungen, Einblendungen). -->
+<resources>
+    <string-array name="sf_builtin_preset_names">
+        <item>Film &amp; Spiel</item>
+        <item>Schatten aufhellen</item>
+        <item>Papierweiß (Text)</item>
+        <item>Hoher Kontrast</item>
+        <item>Schwarzweiß-Schwelle</item>
+        <item>Invertiert</item>
+        <item>Eigenes 7</item>
+        <item>Eigenes 8</item>
+        <item>Eigenes 9</item>
+    </string-array>
+
+    <!-- Einstellungen -->
+    <string name="sf_category_grading">E-Ink-Bild (SelfFramed)</string>
+    <string name="sf_title_grading_enabled">Bildanpassung im Stream</string>
+    <string name="sf_summary_grading_enabled">GPU-Stufe für Gradationskurven, Presets und Tastenkürzel. Aus = Original-Moonlight-Verhalten.</string>
+    <string name="sf_title_grading_osd">Preset-Wechsel einblenden</string>
+    <string name="sf_summary_grading_osd">Kurze, kontrastreiche Einblendung beim Umschalten</string>
+    <string name="sf_title_grading_presets">Presets verwalten</string>
+    <string name="sf_summary_grading_presets">Exportieren, importieren, Startwerte wiederherstellen</string>
+    <string name="sf_title_grading_hotkeys">Tastenkürzel</string>
+    <string name="sf_summary_grading_hotkeys">Strg+Alt+Shift + 1–9 Preset · 0 Neutral · F Filter an/aus · P Bild-Bedienfeld · ← / → voriges / nächstes Preset</string>
+
+    <!-- Einblendungen -->
+    <string name="sf_osd_preset">%1$d · %2$s</string>
+    <string name="sf_osd_neutral">Neutral (Originalbild)</string>
+    <string name="sf_osd_filter_on">Filter an · %1$s</string>
+    <string name="sf_osd_filter_off">Filter aus (Originalbild)</string>
+    <string name="sf_osd_unavailable">Bildanpassung nicht verfügbar: %1$s</string>
+    <string name="sf_osd_hdr">HDR-Stream: Bildanpassung ist aus</string>
+    <string name="sf_osd_start_hint">Strg+Alt+Shift+P: Bild-Bedienfeld</string>
+
+    <!-- Preset-Verwaltung -->
+    <string name="sf_presets_title">Bild-Presets</string>
+    <string name="sf_presets_test_pattern">Testbild öffnen (Presets am Panel einstellen)</string>
+    <string name="sf_presets_export">In Datei exportieren</string>
+    <string name="sf_presets_import">Aus Datei importieren</string>
+    <string name="sf_presets_reset">Startwerte wiederherstellen</string>
+    <string name="sf_presets_reset_confirm">Alle neun Presets durch die Startwerte ersetzen?</string>
+    <string name="sf_presets_exported">Presets exportiert</string>
+    <string name="sf_presets_imported">%1$d Preset(s) importiert</string>
+    <string name="sf_presets_import_failed">Import fehlgeschlagen: %1$s</string>
+    <string name="sf_presets_reset_done">Startwerte wiederhergestellt</string>
+    <string name="sf_presets_info">Presets bearbeitest du live im Stream (Strg+Alt+Shift+P). Hier sicherst, lädst oder setzt du sie zurück. Der Import nimmt einen kompletten Export oder ein einzelnes Preset, auch den gespeicherten Zustand der Userscripts game-curves / discord-stream-filter (landet im aktiven Platz, bei Neutral in Platz 7).</string>
+
+    <!-- Leistungsanzeige -->
+    <string name="sf_perf_line">Bildstufe: %1$s · %2$s</string>
+    <string name="sf_perf_off">Bildstufe: aus (%1$s)</string>
+</resources>

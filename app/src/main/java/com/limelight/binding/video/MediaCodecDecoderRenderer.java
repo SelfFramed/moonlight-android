@@ -76,6 +76,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private boolean foreground = true;
     private PerfOverlayListener perfListener;
 
+    // [SelfFramed] Optional decoder output (GPU picture stage) and its release hook
+    private android.view.Surface sfOutputSurface;
+    private Runnable sfOnCleanup;
+
     private static final int CR_MAX_TRIES = 10;
     private static final int CR_RECOVERY_TYPE_NONE = 0;
     private static final int CR_RECOVERY_TYPE_FLUSH = 1;
@@ -271,6 +275,12 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     public void setRenderTarget(SurfaceHolder renderTarget) {
         this.renderTarget = renderTarget;
+    }
+
+    // [SelfFramed] Decode into this surface instead of the render target; onCleanup runs after release
+    public void sfSetOutputSurface(android.view.Surface surface, Runnable onCleanup) {
+        this.sfOutputSurface = surface;
+        this.sfOnCleanup = onCleanup;
     }
 
     public MediaCodecDecoderRenderer(Activity activity, PreferenceConfiguration prefs,
@@ -516,7 +526,8 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
         LimeLog.info("Configuring with format: "+format);
 
-        videoDecoder.configure(format, renderTarget.getSurface(), null, 0);
+        // [SelfFramed] Render through the GPU picture stage when it is active
+        videoDecoder.configure(format, sfOutputSurface != null ? sfOutputSurface : renderTarget.getSurface(), null, 0);
 
         configuredFormat = format;
 
@@ -1248,6 +1259,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     @Override
     public void cleanup() {
         videoDecoder.release();
+
+        // [SelfFramed] The picture stage may only go away once the decoder let go of its surface
+        if (sfOnCleanup != null) {
+            sfOnCleanup.run();
+        }
     }
 
     @Override

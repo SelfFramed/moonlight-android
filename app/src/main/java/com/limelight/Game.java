@@ -148,6 +148,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView performanceOverlayView;
 
     private MediaCodecDecoderRenderer decoderRenderer;
+
+    // [SelfFramed] GPU picture stage, presets, hotkeys and panel (null = switched off in settings)
+    private com.limelight.selfframed.grading.GradingController sfGrading;
     private boolean reportedCrash;
 
     private WifiManager.WifiLock highPerfWifiLock;
@@ -530,6 +533,21 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     "This device or ROM doesn't support hardware accelerated H.264 playback.", true);
             return;
         }
+
+        // [SelfFramed] Picture stage (docs/selfframed/ARCHITEKTUR.md)
+        sfGrading = com.limelight.selfframed.grading.GradingController.create(this,
+                (FrameLayout) streamView.getParent(), streamView, willStreamHdr,
+                new com.limelight.selfframed.grading.GradingController.StreamHost() {
+                    @Override
+                    public boolean isInputGrabbed() {
+                        return grabbedInput;
+                    }
+
+                    @Override
+                    public void setInputGrabbed(boolean grabbed) {
+                        setInputGrabState(grabbed);
+                    }
+                });
 
         // The connection will be started when the surface gets created
         streamView.getHolder().addCallback(this);
@@ -1058,6 +1076,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Destroy the capture provider
         inputCaptureProvider.destroy();
+
+        // [SelfFramed] Saves presets; releases the picture stage if the decoder cleanup did not
+        if (sfGrading != null) {
+            sfGrading.onDestroy();
+        }
     }
 
     @Override
@@ -1210,10 +1233,24 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Handle the special combos on the key up
         if (waitingForAllModifiersUp || specialKeyCode != KeyEvent.KEYCODE_UNKNOWN) {
             if (specialKeyCode == androidKeyCode) {
+                // [SelfFramed] Pressing the same picture hotkey again (F: before/after) acts again
+                if (down && sfGrading != null && sfGrading.isHotkey(androidKeyCode)) {
+                    sfGrading.onHotkey(androidKeyCode);
+                }
+
                 // If this is a key up for the special key itself, eat that because the host never saw the original key down
                 return true;
             }
             else if (modifierFlags != 0) {
+                // [SelfFramed] Further picture hotkeys while Ctrl+Alt+Shift are still held
+                if (down && sfGrading != null && sfGrading.isHotkey(androidKeyCode) &&
+                        (modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
+                                (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) {
+                    sfGrading.onHotkey(androidKeyCode);
+                    specialKeyCode = androidKeyCode;
+                    return true;
+                }
+
                 // While we're waiting for modifiers to come up, eat all key downs and allow all key ups to pass
                 return down;
             }
@@ -1271,6 +1308,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
 
                 default:
+                    // [SelfFramed] Picture hotkeys act at once on key down; the rest of the combo is
+                    // consumed until all modifiers are released, like the combos above
+                    if (sfGrading != null && sfGrading.isHotkey(androidKeyCode)) {
+                        sfGrading.onHotkey(androidKeyCode);
+                        specialKeyCode = androidKeyCode;
+                        waitingForAllModifiersUp = true;
+                        return true;
+                    }
+
                     // This isn't a special combo that we consume on the client side
                     return false;
             }
@@ -1326,6 +1372,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyDown(KeyEvent event) {
+        // [SelfFramed] The picture panel gets keys first while it is open
+        if (sfGrading != null && sfGrading.handleKeyEvent(event)) {
+            return true;
+        }
+
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
@@ -1408,6 +1459,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyUp(KeyEvent event) {
+        // [SelfFramed] The picture panel gets keys first while it is open
+        if (sfGrading != null && sfGrading.handleKeyEvent(event)) {
+            return true;
+        }
+
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
@@ -2514,6 +2570,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Update GameManager state to indicate we're "loading" while connecting
             UiHelper.notifyStreamConnecting(Game.this);
 
+            // [SelfFramed] Route the decoder through the picture stage when it can start
+            if (sfGrading != null) {
+                Surface sfSurface = sfGrading.attachOutput(holder, prefConfig.width, prefConfig.height,
+                        prefConfig.framePacing);
+                if (sfSurface != null) {
+                    decoderRenderer.sfSetOutputSurface(sfSurface, sfGrading.rendererReleaseHook());
+                }
+            }
+
             decoderRenderer.setRenderTarget(holder);
             conn.start(new AndroidAudioRenderer(Game.this, prefConfig.enableAudioFx),
                     decoderRenderer, Game.this);
@@ -2565,6 +2630,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     public void surfaceDestroyed(SurfaceHolder holder) {
         if (!surfaceCreated) {
             throw new IllegalStateException("Surface destroyed before creation!");
+        }
+
+        // [SelfFramed] The picture stage must stop drawing before the surface goes away
+        if (sfGrading != null) {
+            sfGrading.detachOutput();
         }
 
         if (attemptedConnection) {
@@ -2665,7 +2735,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                performanceOverlayView.setText(text);
+                // [SelfFramed] Append the picture stage's own numbers
+                String sfLine = sfGrading != null ? sfGrading.perfOverlayLine() : null;
+                performanceOverlayView.setText(sfLine != null ? text + "\n" + sfLine : text);
             }
         });
     }

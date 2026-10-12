@@ -186,6 +186,21 @@
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
+
+        <!-- [SelfFramed] Backup/restore of the picture presets (docs/selfframed/BEDIENUNG.md) -->
+        <activity
+            android:name=".selfframed.grading.GradingPresetsActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Material.Light"
+            android:resizeableActivity="true"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" />
+        <!-- [SelfFramed] Test pattern through the picture stage; exported so it can be opened via adb for device tests -->
+        <activity
+            android:name=".selfframed.grading.GradingTestPatternActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen"
+            android:resizeableActivity="true"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" />
     </application>
 
 </manifest>

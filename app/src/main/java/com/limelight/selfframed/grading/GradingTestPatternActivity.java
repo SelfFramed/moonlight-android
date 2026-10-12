@@ -51,18 +51,7 @@ public class GradingTestPatternActivity extends Activity implements SurfaceHolde
         setContentView(root);
         surfaceView.requestFocus();
 
-        controller = GradingController.createForPreview(this, root, surfaceView,
-                new GradingController.StreamHost() {
-                    @Override
-                    public boolean isInputGrabbed() {
-                        return false;
-                    }
-
-                    @Override
-                    public void setInputGrabbed(boolean grabbed) {
-                        // Nothing is captured on this screen
-                    }
-                });
+        controller = GradingController.createForPreview(this, root, surfaceView);
         surfaceView.getHolder().addCallback(this);
     }
 
@@ -72,6 +61,8 @@ public class GradingTestPatternActivity extends Activity implements SurfaceHolde
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        // (Re)attach on every new surface, e.g. after the screen was off; size changes of a live
+        // surface are handled by the renderer itself
         if (attached) {
             return;
         }
@@ -88,6 +79,8 @@ public class GradingTestPatternActivity extends Activity implements SurfaceHolde
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         controller.detachOutput();
+        controller.releaseRenderer();
+        attached = false;
     }
 
     @Override

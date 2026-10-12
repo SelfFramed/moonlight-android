@@ -108,6 +108,13 @@ public class GradingPresetsActivity extends Activity {
         setContentView(scroll);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // The test pattern (opened from here) may have changed the presets meanwhile
+        store = new PresetStore(this);
+    }
+
     private void startForResult(Intent intent, int request) {
         try {
             startActivityForResult(intent, request);

@@ -31,8 +31,10 @@ Einstellungen → E-Ink-Bild → Presets verwalten → Testbild öffnen
       (z. B. in einem offenen Texteditor prüfen).
 - [ ] B3 Strg+Alt+Shift gehalten, F mehrfach tippen: Vorher/Nachher wechselt bei jedem Tippen.
 - [ ] B4 Strg+Alt+Shift+→ / ←: Preset weiter/zurück.
-- [ ] B5 Strg+Alt+Shift+P: Bedienfeld, Mauszeiger frei; Kurve per Maus ziehen; Tippen im Bedienfeld kommt nicht am Host an.
-- [ ] B6 Esc schließt; danach gehen Maus und Tastatur wieder an den Host.
+- [ ] B5 Strg+Alt+Shift+P: Bedienfeld. Tippen im Bedienfeld kommt nicht am Host an. Danach am Host prüfen: kein
+      Strg/Alt/Shift hängt (z. B. in einem Texteditor tippen oder klicken).
+- [ ] B6 Bedienfeld offen, Strg+Alt+Shift+Z: Maus frei, Kurve per Maus ziehen; Strg+Alt+Shift+Z fängt sie wieder ein.
+- [ ] B6a Eine Taste (z. B. W in einem Spiel) gedrückt halten, Bedienfeld öffnen, Taste loslassen: am Host bleibt sie nicht hängen.
 - [ ] B7 Upstream-Kürzel funktionieren unverändert: Strg+Alt+Shift+Z, C, Q.
 - [ ] B8 Stream beenden und neu starten: dasselbe Preset ist aktiv.
 - [ ] B9 Einstellungen → Bildanpassung im Stream aus: Stream läuft wie im offiziellen Moonlight (keine Einblendung, keine

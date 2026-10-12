@@ -536,18 +536,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // [SelfFramed] Picture stage (docs/selfframed/ARCHITEKTUR.md)
         sfGrading = com.limelight.selfframed.grading.GradingController.create(this,
-                (FrameLayout) streamView.getParent(), streamView, willStreamHdr,
-                new com.limelight.selfframed.grading.GradingController.StreamHost() {
-                    @Override
-                    public boolean isInputGrabbed() {
-                        return grabbedInput;
-                    }
-
-                    @Override
-                    public void setInputGrabbed(boolean grabbed) {
-                        setInputGrabState(grabbed);
-                    }
-                });
+                (FrameLayout) streamView.getParent(), streamView, willStreamHdr);
 
         // The connection will be started when the surface gets created
         streamView.getHolder().addCallback(this);
@@ -1242,12 +1231,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return true;
             }
             else if (modifierFlags != 0) {
-                // [SelfFramed] Further picture hotkeys while Ctrl+Alt+Shift are still held
+                // [SelfFramed] Further picture hotkeys while Ctrl+Alt+Shift are still held. A pending
+                // upstream combo (Z/Q/C) keeps its specialKeyCode so it still runs on release.
                 if (down && sfGrading != null && sfGrading.isHotkey(androidKeyCode) &&
                         (modifierFlags & (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) ==
                                 (KeyboardPacket.MODIFIER_CTRL | KeyboardPacket.MODIFIER_ALT | KeyboardPacket.MODIFIER_SHIFT)) {
                     sfGrading.onHotkey(androidKeyCode);
-                    specialKeyCode = androidKeyCode;
+                    if (sfGrading.isHotkey(specialKeyCode)) {
+                        specialKeyCode = androidKeyCode;
+                    }
                     return true;
                 }
 

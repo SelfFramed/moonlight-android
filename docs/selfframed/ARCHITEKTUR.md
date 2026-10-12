@@ -83,7 +83,14 @@ Game.onDestroy ─▶ controller.onDestroy()  (speichert, gibt die Stufe frei, f
   an SurfaceFlinger weitergereicht. „Niedrigste Latenz“ nutzt Swap-Intervall 0: neuere Bilder ersetzen ältere.
   „Ausgewogen“ behält Intervall 1. „FPS begrenzen“ und „Max. Glätte“ verwerfen nie und verwenden keine Zeitstempel.
 - **Rückfall:** GL-Fehler bei der Einrichtung → Einblendung „Bildanpassung nicht verfügbar: …“, Decoder rendert direkt.
+  Die Einrichtung läuft komplett auf einem 1×1-Pbuffer; das EGL-Fenster auf der SurfaceView entsteht als letzter
+  Schritt. So bleibt nach einer Zeitüberschreitung nichts mit der Surface verbunden, und der Decoder kann sie übernehmen.
   HDR-Stream → Stufe aus (E-Ink braucht kein HDR; Tonemapping wäre ein eigenes Projekt).
+- **Fehler im Betrieb:** `EGL_BAD_SURFACE`/`EGL_BAD_NATIVE_WINDOW` beim Swap → Fenster bis zu dreimal neu anlegen;
+  Kontextverlust oder erschöpfte Versuche → Einblendung „Bildanpassung nicht verfügbar: …“ (das Bild steht dann; Stream
+  neu starten oder die Stufe in den Einstellungen abschalten).
+- **Konfiguration:** exakt 8/8/8-Bit (EGL würde sonst tiefere Formate wie 10-Bit zuerst liefern); Swap-Intervall 1 nur
+  bei „FPS begrenzen“/„Max. Glätte“, sonst 0, damit `surfaceDestroyed` nie auf einen hängenden Swap warten muss.
 
 ## 5. Eingabe
 
@@ -91,8 +98,13 @@ Game.onDestroy ─▶ controller.onDestroy()  (speichert, gibt die Stufe frei, f
   und C. Die Bild-Kürzel wirken sofort beim Drücken, solange die Modifikatoren gehalten werden. Erneutes Drücken von F
   schaltet erneut um (Vorher/Nachher), Auto-Repeat wird ignoriert. Wie bei Upstream sieht der Host diese Tasten nie.
 - Bedienfeld offen: `Game.handleKeyDown/Up` gibt zuerst an `GradingController.handleKeyEvent`. Das Bedienfeld bekommt
-  alle Tasten außer Modifikatoren und Strg+Alt+Shift-Kombinationen. Die Maus wird freigegeben (wie Strg+Alt+Shift+Z)
-  und beim Schließen wiederhergestellt.
+  jedes Key-Down außer Modifikatoren, Strg+Alt+Shift-Kombinationen und Gamepad-Tasten, dazu nur die passenden Key-Ups.
+  Alles andere läuft zum Host weiter; Tasten, die vor dem Öffnen gedrückt waren, werden dort normal losgelassen.
+- Der Maus-Einfang (`grabbedInput`) wird bewusst **nicht** angefasst. Eine automatische Freigabe beim Öffnen hatte im
+  Review (12.10.2026) hängende Modifikatoren am Host erzeugt: Die Key-Ups von Strg/Alt/Shift kamen nach der Freigabe
+  nicht mehr beim Host an. Maus im Bedienfeld = Strg+Alt+Shift+Z wie bei Upstream.
+- Bild-Kürzel, solange Strg+Alt+Shift gehalten werden, überschreiben eine anstehende Upstream-Kombination (Z/Q/C) nicht.
+- Ist die Stufe nicht aktiv (HDR, Fehler), sagen die Kürzel per Einblendung warum, statt Wechsel vorzutäuschen.
 
 ## 6. Einhängepunkte in Upstream-Dateien
 

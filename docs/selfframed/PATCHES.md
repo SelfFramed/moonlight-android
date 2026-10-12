@@ -24,11 +24,11 @@ Grundregeln:
 | 6 | `MediaCodecDecoderRenderer.java` | `configureAndStartDecoder`: `configure(format, sfOutputSurface != null ? … : renderTarget.getSurface(), …)` | Decoder rendert in die SurfaceTexture der Bildstufe. **Kritisch:** Ruft Upstream `configure` künftig an anderer Stelle auf oder nutzt `setOutputSurface`, muss jede Stelle dieselbe Auswahl treffen. | alle `configure`/`setOutputSurface`-Aufrufe prüfen |
 | 7 | `MediaCodecDecoderRenderer.java` | `cleanup()`: nach `videoDecoder.release()` → `sfOnCleanup.run()` | Bildstufe erst freigeben, wenn der Decoder ihre Surface losgelassen hat | nach jeder Decoder-Freigabe |
 | 8 | `Game.java` | Feld `sfGrading` | Controller der Bildstufe | – |
-| 9 | `Game.java` | Ende `onCreate`, vor `streamView.getHolder().addCallback(this)` | Controller erzeugen; braucht `willStreamHdr` (lokal in `onCreate`), `grabbedInput`, `setInputGrabState` | nach der HDR-Entscheidung und vor dem Surface-Callback |
+| 9 | `Game.java` | Ende `onCreate`, vor `streamView.getHolder().addCallback(this)` | Controller erzeugen; braucht `willStreamHdr` (lokal in `onCreate`) und den FrameLayout-Elternteil der StreamView | nach der HDR-Entscheidung und vor dem Surface-Callback |
 | 10 | `Game.java` | `surfaceChanged`, vor `decoderRenderer.setRenderTarget(holder)` | Bildstufe starten, Decoder umleiten | muss vor `conn.start` laufen |
 | 11 | `Game.java` | `surfaceDestroyed`, am Anfang | GL-Fenster zerstören, bevor die Surface verschwindet (synchron) | vor jedem Code, der die Surface freigibt |
 | 12 | `Game.java` | `handleSpecialKeys`: Zweig `specialKeyCode == androidKeyCode` | Gleiches Bild-Kürzel erneut drücken wirkt erneut (F = Vorher/Nachher) | – |
-| 13 | `Game.java` | `handleSpecialKeys`: Zweig „warten auf Modifikatoren“ | weitere Bild-Kürzel, solange Strg+Alt+Shift gehalten werden | vor `return down;` |
+| 13 | `Game.java` | `handleSpecialKeys`: Zweig „warten auf Modifikatoren“ | weitere Bild-Kürzel, solange Strg+Alt+Shift gehalten werden; eine anstehende Upstream-Kombination (Z/Q/C) behält ihren `specialKeyCode` | vor `return down;` |
 | 14 | `Game.java` | `handleSpecialKeys`: `default` im Kombinations-`switch` | Bild-Kürzel erkennen und sofort ausführen; Rest der Kombination wie Upstream verschlucken | Upstream-Kürzel (Z, Q, C) haben Vorrang |
 | 15 | `Game.java` | Anfang `handleKeyDown` | offenes Bedienfeld bekommt Tasten zuerst | ganz oben, vor allem anderen |
 | 16 | `Game.java` | Anfang `handleKeyUp` | dito für Key-Up | ganz oben |

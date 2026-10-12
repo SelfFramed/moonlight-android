@@ -10,6 +10,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -317,6 +318,7 @@ public final class GradingPanelView extends FrameLayout implements GradingPanel,
         LinearLayout monoRow = newRow(ROW_MONO, LinearLayout.HORIZONTAL);
         TextView monoLabel = text(BODY_SP, false);
         monoLabel.setText(R.string.sf_ui_mono);
+        singleLineLabel(monoLabel);
         monoRow.addView(monoLabel, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         TextView monoValue = text(BODY_SP, true);
         monoValue.setGravity(Gravity.CENTER);
@@ -1217,6 +1219,7 @@ public final class GradingPanelView extends FrameLayout implements GradingPanel,
         }
         TextView label = text(BODY_SP, false);
         label.setText(labelRes);
+        singleLineLabel(label);
         layout.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         layout.addView(arrowButton(true, new OnClickListener() {
             @Override
@@ -1276,6 +1279,12 @@ public final class GradingPanelView extends FrameLayout implements GradingPanel,
         t.setFocusable(false);
         t.setSoundEffectsEnabled(false);
         return t;
+    }
+
+    /** Narrow panels (phone in portrait) shorten labels instead of wrapping them letter by letter. */
+    private static void singleLineLabel(TextView label) {
+        label.setSingleLine(true);
+        label.setEllipsize(TextUtils.TruncateAt.END);
     }
 
     private void setWeightText(int row, double weight, boolean usable, int index) {

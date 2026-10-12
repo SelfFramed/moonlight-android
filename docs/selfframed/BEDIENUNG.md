@@ -32,9 +32,12 @@ Einstellungen. Der Wechsel wirkt sofort, auch wenn sich im Bild gerade nichts be
 ## 3. Bild-Bedienfeld (Strg+Alt+Shift+P)
 
 Das Bedienfeld liegt rechts über dem laufenden Stream. Jede Änderung wirkt live und wird automatisch gespeichert; es
-gibt keinen Speichern-Knopf. Solange es offen ist, geht keine Taste an den Host, und die Maus ist frei, sodass Punkte
-auch mit Maus oder Touchpad gezogen werden können. Schließen mit **Esc** (oder wieder Strg+Alt+Shift+P). Danach ist der
-vorherige Zustand von Maus und Tastatur wiederhergestellt.
+gibt keinen Speichern-Knopf. Die Tasten, die das Bedienfeld benutzt, kommen nicht beim Host an; alles andere (z. B.
+gehaltene Tasten, Gamepad) läuft normal weiter, sodass am Host nichts hängen bleibt. Schließen mit **Esc** (oder wieder
+Strg+Alt+Shift+P).
+
+**Maus:** Das Bedienfeld lässt Moonlights Maus-Einfang unverändert. Für die Maus wie gewohnt **Strg+Alt+Shift+Z**
+drücken (Maus frei), Punkte ziehen, danach erneut Strg+Alt+Shift+Z.
 
 **Kurve (im Mittelpunkt, beim Öffnen ausgewählt)**
 

@@ -44,8 +44,19 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableListener {
     private static final int INIT_TIMEOUT_MS = 3000;
+    private static final int RELEASE_WAIT_MS = 1500;
     private static final int DETACH_TIMEOUT_MS = 2000;
+    private static final int MAX_WINDOW_RECREATE = 3;
     private static final int LUT_TEXEL_BYTES = GradingLut.SIZE * 4;
+
+    /** Callbacks, delivered on the GL thread. */
+    public interface Listener {
+        /** Once: the first video frame has been presented. */
+        void onFirstFrame();
+
+        /** Once: the stage can no longer draw; the stream picture will freeze. */
+        void onFailure(String reason);
+    }
 
     private static final String VERTEX_SHADER =
             "attribute vec4 aPosition;\n" +
@@ -103,7 +114,7 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
             1f, 1f, 1f, 1f,
     };
 
-    /** Frame pacing modes that want SurfaceFlinger to drop superseded frames. */
+    /** Frames are released as soon as they are decoded; superseded frames may be dropped. */
     public static final int PACING_LOWEST_LATENCY = 0;
     /** Frames are released at vsync cadence by the decoder (balanced pacing). */
     public static final int PACING_VSYNC = 1;
@@ -115,6 +126,7 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
     private final int pacing;
     private final AtomicBoolean renderScheduled = new AtomicBoolean();
     private final AtomicBoolean releaseRequested = new AtomicBoolean();
+    private final CountDownLatch releasedLatch = new CountDownLatch(1);
     private final AtomicReference<GradingLut> pendingLut = new AtomicReference<>(GradingLut.NEUTRAL);
     private final Runnable renderRunnable = new Runnable() {
         @Override
@@ -124,12 +136,19 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
         }
     };
 
+    /** Set when create() gave up waiting; initGl() then never connects to the window. */
+    private volatile boolean cancelled;
+    /** Set when the output is going away; render() stops drawing at once. */
+    private volatile boolean detaching;
+    private volatile Listener listener;
+
     // ---- GL thread state ----
     private EGLDisplay eglDisplay = EGL14.EGL_NO_DISPLAY;
     private EGLContext eglContext = EGL14.EGL_NO_CONTEXT;
     private EGLConfig eglConfig;
     private EGLSurface windowSurface = EGL14.EGL_NO_SURFACE;
     private EGLSurface pbufferSurface = EGL14.EGL_NO_SURFACE;
+    private Surface outputSurface;
     private SurfaceTexture surfaceTexture;
     private Surface decoderSurface;
     private int oesTexture, lutTexture;
@@ -140,9 +159,13 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
     private final float[] texMatrix = new float[16];
     private int framesAvailable;
     private boolean hasFrame;
+    private boolean redrawRequested;
     private long frameTimestampNs;
     private boolean released;
-    private volatile Runnable firstFrameListener;
+    private boolean failed;
+    private boolean firstFrameReported;
+    private int windowRecreateAttempts;
+    private int swapErrorsLogged;
 
     // Statistics (GL thread writes, any thread reads a snapshot)
     private volatile String statsLine = "";
@@ -164,8 +187,8 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
     /**
      * Creates the GPU stage for the given output surface and blocks until it is ready.
      *
-     * @throws IllegalStateException if EGL/GLES setup fails; the caller should then let the
-     *                               decoder render directly to the output surface
+     * @throws IllegalStateException if EGL/GLES setup fails or times out; the caller should
+     *                               then let the decoder render directly to the output surface
      */
     public static GradingRenderer create(final Surface output, final int videoWidth, final int videoHeight,
                                          int pacing) {
@@ -179,7 +202,6 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
                     r.initGl(output, videoWidth, videoHeight);
                 } catch (RuntimeException e) {
                     error.set(e);
-                    r.releaseGl();
                 } finally {
                     done.countDown();
                 }
@@ -193,13 +215,12 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
             Thread.currentThread().interrupt();
             finished = false;
         }
-        if (!finished) {
+        if (!finished || error.get() != null) {
+            r.cancelled = true;
             r.release();
-            throw new IllegalStateException("GL setup timed out");
-        }
-        if (error.get() != null) {
-            r.thread.quitSafely();
-            throw error.get();
+            // The decoder falls back to this very surface, which must not stay connected to EGL
+            r.awaitReleased();
+            throw finished ? error.get() : new IllegalStateException("GL setup timed out");
         }
         return r;
     }
@@ -221,6 +242,7 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
      * consumed afterwards so the decoder never stalls while the stream shuts down.
      */
     public void detachOutput() {
+        detaching = true;
         runAndWait(new Runnable() {
             @Override
             public void run() {
@@ -234,13 +256,25 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
         if (releaseRequested.getAndSet(true)) {
             return;
         }
-        handler.post(new Runnable() {
+        if (!handler.post(new Runnable() {
             @Override
             public void run() {
                 releaseGl();
                 thread.quitSafely();
             }
-        });
+        })) {
+            releasedLatch.countDown();
+        }
+    }
+
+    private void awaitReleased() {
+        try {
+            if (!releasedLatch.await(RELEASE_WAIT_MS, TimeUnit.MILLISECONDS)) {
+                LimeLog.warning("SelfFramed grading: GL thread did not release in time");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /** Short status for the performance overlay (empty until the first frames were drawn). */
@@ -248,9 +282,8 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
         return statsLine;
     }
 
-    /** Runs once, on the GL thread, after the first video frame has been presented. */
-    public void setFirstFrameListener(Runnable listener) {
-        firstFrameListener = listener;
+    public void setListener(Listener listener) {
+        this.listener = listener;
     }
 
     // ------------------------------------------------------------------------------------
@@ -307,21 +340,7 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
             eglDisplay = EGL14.EGL_NO_DISPLAY;
             throw eglFailure("eglInitialize");
         }
-
-        int[] configAttribs = {
-                EGL14.EGL_RED_SIZE, 8,
-                EGL14.EGL_GREEN_SIZE, 8,
-                EGL14.EGL_BLUE_SIZE, 8,
-                EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
-                EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT | EGL14.EGL_PBUFFER_BIT,
-                EGL14.EGL_NONE
-        };
-        EGLConfig[] configs = new EGLConfig[1];
-        int[] numConfigs = new int[1];
-        if (!EGL14.eglChooseConfig(eglDisplay, configAttribs, 0, configs, 0, 1, numConfigs, 0) || numConfigs[0] < 1) {
-            throw eglFailure("eglChooseConfig");
-        }
-        eglConfig = configs[0];
+        eglConfig = chooseConfig();
 
         int[] contextAttribs = {EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE};
         eglContext = EGL14.eglCreateContext(eglDisplay, eglConfig, EGL14.EGL_NO_CONTEXT, contextAttribs, 0);
@@ -329,23 +348,16 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
             throw eglFailure("eglCreateContext");
         }
 
-        // Keeps the context current while no window is attached (after detachOutput())
+        // Everything is set up on a tiny pbuffer first. The window surface is created last, so a
+        // slow driver can never leave the SurfaceView connected to EGL when create() gives up.
         int[] pbufferAttribs = {EGL14.EGL_WIDTH, 1, EGL14.EGL_HEIGHT, 1, EGL14.EGL_NONE};
         pbufferSurface = EGL14.eglCreatePbufferSurface(eglDisplay, eglConfig, pbufferAttribs, 0);
         if (pbufferSurface == EGL14.EGL_NO_SURFACE) {
             throw eglFailure("eglCreatePbufferSurface");
         }
-
-        windowSurface = EGL14.eglCreateWindowSurface(eglDisplay, eglConfig, output, new int[] {EGL14.EGL_NONE}, 0);
-        if (windowSurface == EGL14.EGL_NO_SURFACE) {
-            throw eglFailure("eglCreateWindowSurface");
-        }
-        if (!EGL14.eglMakeCurrent(eglDisplay, windowSurface, windowSurface, eglContext)) {
+        if (!EGL14.eglMakeCurrent(eglDisplay, pbufferSurface, pbufferSurface, eglContext)) {
             throw eglFailure("eglMakeCurrent");
         }
-        // Lowest latency: never block on the display queue, newer frames replace older ones.
-        // Otherwise keep the default (blocking, nothing is dropped).
-        EGL14.eglSwapInterval(eglDisplay, pacing == PACING_LOWEST_LATENCY ? 0 : 1);
 
         passthrough = buildProgram(FRAGMENT_PASSTHROUGH, false);
         grading = buildProgram(FRAGMENT_GRADING, true);
@@ -379,18 +391,90 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
         GLES20.glDisable(GLES20.GL_BLEND);
 
-        // Black first frame until the decoder delivers
-        GLES20.glClearColor(0f, 0f, 0f, 1f);
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        EGL14.eglSwapBuffers(eglDisplay, windowSurface);
-
         surfaceTexture = new SurfaceTexture(oesTexture);
         surfaceTexture.setDefaultBufferSize(videoWidth, videoHeight);
         surfaceTexture.setOnFrameAvailableListener(this, handler);
         decoderSurface = new Surface(surfaceTexture);
 
+        if (cancelled) {
+            throw new IllegalStateException("GL setup cancelled");
+        }
+        outputSurface = output;
+        if (!createWindowSurface(true)) {
+            throw eglFailure("eglCreateWindowSurface");
+        }
+
         LimeLog.info("SelfFramed grading: GPU stage ready (EGL " + version[0] + "." + version[1]
                 + ", " + GLES20.glGetString(GLES20.GL_RENDERER) + ", pacing " + pacing + ")");
+    }
+
+    /** An exact 8/8/8 config: EGL sorts deeper (e.g. 10-bit) configs first otherwise. */
+    private EGLConfig chooseConfig() {
+        int[] attribs = {
+                EGL14.EGL_RED_SIZE, 8,
+                EGL14.EGL_GREEN_SIZE, 8,
+                EGL14.EGL_BLUE_SIZE, 8,
+                EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+                EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT | EGL14.EGL_PBUFFER_BIT,
+                EGL14.EGL_NONE
+        };
+        EGLConfig[] configs = new EGLConfig[32];
+        int[] count = new int[1];
+        if (!EGL14.eglChooseConfig(eglDisplay, attribs, 0, configs, 0, configs.length, count, 0) || count[0] < 1) {
+            throw eglFailure("eglChooseConfig");
+        }
+        EGLConfig withAlpha = null, withoutAlpha = null;
+        int[] value = new int[1];
+        for (int i = 0; i < count[0]; i++) {
+            if (attrib(configs[i], EGL14.EGL_RED_SIZE, value) != 8 || attrib(configs[i], EGL14.EGL_GREEN_SIZE, value) != 8
+                    || attrib(configs[i], EGL14.EGL_BLUE_SIZE, value) != 8) {
+                continue;
+            }
+            int alpha = attrib(configs[i], EGL14.EGL_ALPHA_SIZE, value);
+            if (alpha == 8 && withAlpha == null) {
+                withAlpha = configs[i];
+            } else if (alpha == 0 && withoutAlpha == null) {
+                withoutAlpha = configs[i];
+            }
+        }
+        if (withAlpha != null) {
+            return withAlpha;
+        }
+        if (withoutAlpha != null) {
+            return withoutAlpha;
+        }
+        LimeLog.warning("SelfFramed grading: no exact 8-bit EGL config, using the first match");
+        return configs[0];
+    }
+
+    private int attrib(EGLConfig config, int attribute, int[] value) {
+        return EGL14.eglGetConfigAttrib(eglDisplay, config, attribute, value, 0) ? value[0] : -1;
+    }
+
+    /** Creates the EGL window surface on the output surface and makes it current. */
+    private boolean createWindowSurface(boolean clearToBlack) {
+        windowSurface = EGL14.eglCreateWindowSurface(eglDisplay, eglConfig, outputSurface,
+                new int[] {EGL14.EGL_NONE}, 0);
+        if (windowSurface == EGL14.EGL_NO_SURFACE) {
+            LimeLog.warning("SelfFramed grading: eglCreateWindowSurface failed: 0x"
+                    + Integer.toHexString(EGL14.eglGetError()));
+            return false;
+        }
+        if (!makeCurrent(windowSurface)) {
+            destroyWindowSurface();
+            return false;
+        }
+        // Never-drop modes block on the display queue (back-pressure, nothing is dropped).
+        // Otherwise never block: newer frames replace older ones, and surfaceDestroyed() can
+        // never wait for a stuck swap.
+        EGL14.eglSwapInterval(eglDisplay, pacing == PACING_NEVER_DROP ? 1 : 0);
+        if (clearToBlack) {
+            // Black until the decoder delivers the first frame
+            GLES20.glClearColor(0f, 0f, 0f, 1f);
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+            EGL14.eglSwapBuffers(eglDisplay, windowSurface);
+        }
+        return true;
     }
 
     private Program buildProgram(String fragmentSource, boolean withLut) {
@@ -467,7 +551,8 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
         boolean newFrame = framesAvailable > 0;
         if (newFrame) {
             // Latch every queued buffer; only the newest one is drawn. Keeps latency bounded
-            // if this thread was ever delayed, and keeps the decoder's buffers flowing.
+            // if this thread was ever delayed, and keeps the decoder's buffers flowing even
+            // while nothing can be drawn (detached, failed).
             int queued = framesAvailable;
             framesAvailable = 0;
             try {
@@ -487,11 +572,18 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
             statsDrained += queued - 1;
         }
 
-        GradingLut lut = pendingLut.get();
-        boolean lutChanged = lut != currentLut;
-        if (windowSurface == EGL14.EGL_NO_SURFACE || !hasFrame || (!newFrame && !lutChanged)) {
+        if (detaching || failed || !hasFrame) {
             return;
         }
+        if (windowSurface == EGL14.EGL_NO_SURFACE && !recreateWindowSurface()) {
+            return;
+        }
+        GradingLut lut = pendingLut.get();
+        boolean lutChanged = lut != currentLut;
+        if (!newFrame && !lutChanged && !redrawRequested) {
+            return;
+        }
+        redrawRequested = false;
         if (!makeCurrent(windowSurface)) {
             return;
         }
@@ -532,26 +624,68 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
             EGLExt.eglPresentationTimeANDROID(eglDisplay, windowSurface, frameTimestampNs);
         }
         if (!EGL14.eglSwapBuffers(eglDisplay, windowSurface)) {
-            int err = EGL14.eglGetError();
-            LimeLog.warning("SelfFramed grading: eglSwapBuffers failed: 0x" + Integer.toHexString(err));
-            if (err == EGL14.EGL_BAD_SURFACE || err == EGL14.EGL_BAD_NATIVE_WINDOW) {
-                destroyWindowSurface();
-            }
+            onSwapFailed(EGL14.eglGetError());
             return;
         }
 
         if (newFrame) {
             statsFrames++;
-            Runnable listener = firstFrameListener;
-            if (listener != null) {
-                firstFrameListener = null;
-                listener.run();
+            if (!firstFrameReported) {
+                firstFrameReported = true;
+                Listener l = listener;
+                if (l != null) {
+                    l.onFirstFrame();
+                }
             }
         } else {
             statsRedraws++;
         }
         statsRenderNs += SystemClock.elapsedRealtimeNanos() - start;
         updateStats();
+    }
+
+    private void onSwapFailed(int err) {
+        if (swapErrorsLogged < 5) {
+            swapErrorsLogged++;
+            LimeLog.warning("SelfFramed grading: eglSwapBuffers failed: 0x" + Integer.toHexString(err));
+        }
+        if (err == EGL14.EGL_BAD_SURFACE || err == EGL14.EGL_BAD_NATIVE_WINDOW) {
+            // The window went away under us; recreate it on the next frame (bounded retries)
+            destroyWindowSurface();
+            redrawRequested = true;
+            scheduleRender();
+        } else if (err == EGL14.EGL_CONTEXT_LOST) {
+            fail("EGL context lost");
+        }
+    }
+
+    /** After a window error: try to get the picture back, a few times at most. */
+    private boolean recreateWindowSurface() {
+        if (outputSurface == null || !outputSurface.isValid() || windowRecreateAttempts >= MAX_WINDOW_RECREATE) {
+            if (windowRecreateAttempts >= MAX_WINDOW_RECREATE) {
+                fail("display surface lost");
+            }
+            return false;
+        }
+        windowRecreateAttempts++;
+        if (!createWindowSurface(false)) {
+            return false;
+        }
+        LimeLog.info("SelfFramed grading: window surface recreated (attempt " + windowRecreateAttempts + ")");
+        redrawRequested = true;
+        return true;
+    }
+
+    private void fail(String reason) {
+        if (failed) {
+            return;
+        }
+        failed = true;
+        LimeLog.warning("SelfFramed grading: GPU stage failed: " + reason);
+        Listener l = listener;
+        if (l != null) {
+            l.onFailure(reason);
+        }
     }
 
     private void updateStats() {
@@ -575,7 +709,11 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
 
     private boolean makeCurrent(EGLSurface surface) {
         if (!EGL14.eglMakeCurrent(eglDisplay, surface, surface, eglContext)) {
-            LimeLog.warning("SelfFramed grading: eglMakeCurrent failed: 0x" + Integer.toHexString(EGL14.eglGetError()));
+            int err = EGL14.eglGetError();
+            LimeLog.warning("SelfFramed grading: eglMakeCurrent failed: 0x" + Integer.toHexString(err));
+            if (err == EGL14.EGL_CONTEXT_LOST) {
+                fail("EGL context lost");
+            }
             return false;
         }
         return true;
@@ -586,7 +724,7 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
             return;
         }
         if (pbufferSurface != EGL14.EGL_NO_SURFACE) {
-            makeCurrent(pbufferSurface);
+            EGL14.eglMakeCurrent(eglDisplay, pbufferSurface, pbufferSurface, eglContext);
         } else {
             EGL14.eglMakeCurrent(eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
         }
@@ -596,6 +734,7 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
 
     private void releaseGl() {
         if (released) {
+            releasedLatch.countDown();
             return;
         }
         released = true;
@@ -642,6 +781,7 @@ public final class GradingRenderer implements SurfaceTexture.OnFrameAvailableLis
             EGL14.eglReleaseThread();
             eglDisplay = EGL14.EGL_NO_DISPLAY;
         }
+        releasedLatch.countDown();
         LimeLog.info("SelfFramed grading: GPU stage released");
     }
 

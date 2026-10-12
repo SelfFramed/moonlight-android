@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -25,12 +26,19 @@ import com.limelight.R;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.selfframed.ui.GradingPanelView;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Glue between the stream activity (Game) and the picture feature: owns the GPU stage,
  * the preset store, the hotkeys, the on-screen notice and the in-stream panel.
  *
  * Game only talks to this class, through the hooks marked [SelfFramed]. Everything here runs
  * on the UI thread unless stated otherwise.
+ *
+ * The panel deliberately does not touch Moonlight's input grab: keys it uses never reach the
+ * host, every other key (and every modifier) flows to the host as usual, so nothing can get
+ * stuck there. To use the mouse in the panel, release it with Ctrl+Alt+Shift+Z as always.
  */
 public final class GradingController implements GradingEditorHost {
     /** Master switch (settings). Off = exact upstream behaviour, this class is not created. */
@@ -41,18 +49,9 @@ public final class GradingController implements GradingEditorHost {
     private static final int OSD_DURATION_MS = 1800;
     private static final int SAVE_DELAY_MS = 400;
 
-    /** What the controller needs from the stream activity. */
-    public interface StreamHost {
-        boolean isInputGrabbed();
-
-        /** Captures (true) or releases (false) mouse and keyboard, like Ctrl+Alt+Shift+Z. */
-        void setInputGrabbed(boolean grabbed);
-    }
-
     private final Activity activity;
     private final FrameLayout overlayParent;
     private final View streamView;
-    private final StreamHost streamHost;
     private final boolean hdrStream;
     private final boolean osdEnabled;
     private final PresetStore store;
@@ -62,7 +61,8 @@ public final class GradingController implements GradingEditorHost {
     private String unavailableReason;
     private GradingPanel panel;
     private boolean panelOpen;
-    private boolean grabbedBeforePanel;
+    /** Key codes whose key-down the panel consumed; only their key-ups are consumed too. */
+    private final Set<Integer> panelKeysDown = new HashSet<>();
     private TextView osdView;
     private int lastPresetSlot;
     private boolean lastKeyWasRepeat;
@@ -88,31 +88,27 @@ public final class GradingController implements GradingEditorHost {
      * @return the controller, or null if the picture stage is switched off in the settings
      */
     public static GradingController create(Activity activity, FrameLayout overlayParent, View streamView,
-                                           boolean hdrStream, StreamHost streamHost) {
+                                           boolean hdrStream) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
         if (!prefs.getBoolean(PREF_ENABLED, true)) {
             LimeLog.info("SelfFramed grading: disabled in settings");
             return null;
         }
-        return new GradingController(activity, overlayParent, streamView, hdrStream, streamHost,
-                prefs.getBoolean(PREF_OSD, true));
+        return new GradingController(activity, overlayParent, streamView, hdrStream, prefs.getBoolean(PREF_OSD, true));
     }
 
     /** For the test pattern screen: always on, regardless of the stream setting. */
-    public static GradingController createForPreview(Activity activity, FrameLayout overlayParent, View view,
-                                                     StreamHost streamHost) {
+    public static GradingController createForPreview(Activity activity, FrameLayout overlayParent, View view) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
-        return new GradingController(activity, overlayParent, view, false, streamHost,
-                prefs.getBoolean(PREF_OSD, true));
+        return new GradingController(activity, overlayParent, view, false, prefs.getBoolean(PREF_OSD, true));
     }
 
     private GradingController(Activity activity, FrameLayout overlayParent, View streamView, boolean hdrStream,
-                              StreamHost streamHost, boolean osdEnabled) {
+                              boolean osdEnabled) {
         this.activity = activity;
         this.overlayParent = overlayParent;
         this.streamView = streamView;
         this.hdrStream = hdrStream;
-        this.streamHost = streamHost;
         this.osdEnabled = osdEnabled;
         this.store = new PresetStore(activity);
         int active = store.bundle().getActiveSlot();
@@ -131,40 +127,53 @@ public final class GradingController implements GradingEditorHost {
     // ------------------------------------------------------------------------------------
 
     /**
-     * Starts the GPU stage on the stream's surface.
+     * Starts the GPU stage on the stream's surface (replacing a previous one, if any).
      *
      * @return the surface the decoder must render into, or null to let the decoder render
      *         directly (stage unavailable or HDR stream); the stream works either way
      */
     public Surface attachOutput(SurfaceHolder holder, int videoWidth, int videoHeight, int framePacing) {
+        releaseRenderer();
         if (hdrStream) {
             unavailableReason = "HDR";
             showOsd(activity.getString(R.string.sf_osd_hdr), true);
             return null;
         }
+        GradingRenderer r;
         try {
-            GradingRenderer r = GradingRenderer.create(holder.getSurface(), videoWidth, videoHeight,
-                    toRendererPacing(framePacing));
-            r.setFirstFrameListener(new Runnable() {
-                @Override
-                public void run() {
-                    uiHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            showStartNotice();
-                        }
-                    });
-                }
-            });
-            renderer = r;
+            r = GradingRenderer.create(holder.getSurface(), videoWidth, videoHeight, toRendererPacing(framePacing));
         } catch (RuntimeException e) {
             LimeLog.warning("SelfFramed grading: GPU stage unavailable, rendering directly: " + e);
             unavailableReason = String.valueOf(e.getMessage());
             showOsd(activity.getString(R.string.sf_osd_unavailable, unavailableReason), true);
             return null;
         }
+        unavailableReason = null;
+        r.setListener(new GradingRenderer.Listener() {
+            @Override
+            public void onFirstFrame() {
+                uiHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showStartNotice();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(final String reason) {
+                uiHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        unavailableReason = reason;
+                        showOsd(activity.getString(R.string.sf_osd_unavailable, reason), true);
+                    }
+                });
+            }
+        });
+        renderer = r;
         applyCurrent();
-        return renderer.getInputSurface();
+        return r.getInputSurface();
     }
 
     /**
@@ -172,10 +181,10 @@ public final class GradingController implements GradingEditorHost {
      * let go of its output surface.
      */
     public Runnable rendererReleaseHook() {
+        final GradingRenderer r = renderer;
         return new Runnable() {
             @Override
             public void run() {
-                GradingRenderer r = renderer;
                 if (r != null) {
                     r.release();
                 }
@@ -191,28 +200,38 @@ public final class GradingController implements GradingEditorHost {
         }
     }
 
-    /** Activity.onDestroy(). */
-    public void onDestroy() {
-        destroyed = true;
-        uiHandler.removeCallbacksAndMessages(null);
-        store.save();
+    /** Releases the GPU stage (it can be attached again later). */
+    public void releaseRenderer() {
         GradingRenderer r = renderer;
+        renderer = null;
         if (r != null) {
             r.release();
         }
     }
 
+    /** Activity.onDestroy(). */
+    public void onDestroy() {
+        destroyed = true;
+        uiHandler.removeCallbacksAndMessages(null);
+        store.save();
+        releaseRenderer();
+    }
+
     /** Extra line for the performance overlay, or null. */
     public String perfOverlayLine() {
         GradingRenderer r = renderer;
+        if (unavailableReason != null) {
+            return activity.getString(R.string.sf_perf_off, unavailableReason);
+        }
         if (r != null) {
             String stats = r.getStatsLine();
             return activity.getString(R.string.sf_perf_line, stats.isEmpty() ? "…" : stats, describeState());
         }
-        if (unavailableReason != null) {
-            return activity.getString(R.string.sf_perf_off, unavailableReason);
-        }
         return null;
+    }
+
+    private boolean isStageActive() {
+        return renderer != null && unavailableReason == null;
     }
 
     private static int toRendererPacing(int framePacing) {
@@ -256,6 +275,13 @@ public final class GradingController implements GradingEditorHost {
         if (lastKeyWasRepeat || destroyed) {
             return;
         }
+        if (!isStageActive()) {
+            // Say why nothing happens instead of pretending to switch presets
+            String reason = unavailableReason != null ? unavailableReason : "…";
+            showOsd(hdrStream ? activity.getString(R.string.sf_osd_hdr)
+                    : activity.getString(R.string.sf_osd_unavailable, reason), true);
+            return;
+        }
         PresetBundle b = store.bundle();
         switch (GradingHotkeys.actionFor(keyCode)) {
             case GradingHotkeys.ACTION_SLOT:
@@ -289,27 +315,45 @@ public final class GradingController implements GradingEditorHost {
     }
 
     /**
-     * Sees every key event before the stream does. While the panel is open it owns the
-     * keyboard, except for modifier keys and Ctrl+Alt+Shift combos (stream hotkeys).
+     * Sees every key event before the stream does. While the panel is open it takes the keys
+     * it needs: every key-down except modifiers, Ctrl+Alt+Shift combos (stream hotkeys) and
+     * game controller buttons, plus the matching key-ups. Everything else flows on to the
+     * stream, so keys held before the panel opened are released on the host normally.
      *
      * @return true if the event was consumed
      */
     public boolean handleKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+        int action = event.getAction();
+        int code = event.getKeyCode();
+        if (action == KeyEvent.ACTION_DOWN) {
             lastKeyWasRepeat = event.getRepeatCount() > 0;
         }
         if (!panelOpen || panel == null) {
             return false;
         }
-        if (KeyEvent.isModifierKey(event.getKeyCode())) {
+        if (KeyEvent.isModifierKey(code) || isGameController(event)) {
             return false;
         }
-        if (event.isCtrlPressed() && event.isAltPressed() && event.isShiftPressed()) {
-            return false;
+        if (action == KeyEvent.ACTION_DOWN) {
+            if (event.isCtrlPressed() && event.isAltPressed() && event.isShiftPressed()) {
+                return false;
+            }
+            panelKeysDown.add(code);
+            panel.handleKeyEvent(event);
+            return true;
         }
-        panel.handleKeyEvent(event);
-        // Consume everything else so nothing leaks to the host or to Android (e.g. Back)
-        return true;
+        if (action == KeyEvent.ACTION_UP && panelKeysDown.remove(code)) {
+            panel.handleKeyEvent(event);
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isGameController(KeyEvent event) {
+        int source = event.getSource();
+        return (source & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
+                || (source & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK
+                || KeyEvent.isGamepadButton(event.getKeyCode());
     }
 
     public boolean isPanelOpen() {
@@ -330,12 +374,7 @@ public final class GradingController implements GradingEditorHost {
         uiHandler.removeCallbacks(hideOsd);
         hideOsd.run();
 
-        // Free the mouse so the panel can be used with it; restored on close
-        grabbedBeforePanel = streamHost.isInputGrabbed();
-        if (grabbedBeforePanel) {
-            streamHost.setInputGrabbed(false);
-        }
-
+        panelKeysDown.clear();
         panelOpen = true;
         panel.view().setVisibility(View.VISIBLE);
         panel.view().bringToFront();
@@ -413,11 +452,10 @@ public final class GradingController implements GradingEditorHost {
             return;
         }
         panelOpen = false;
+        // Key-ups of keys still held go to the stream as stray key-ups, which hosts ignore
+        panelKeysDown.clear();
         panel.onHidden();
         panel.view().setVisibility(View.GONE);
-        if (grabbedBeforePanel) {
-            streamHost.setInputGrabbed(true);
-        }
         streamView.requestFocus();
         uiHandler.removeCallbacks(saveNow);
         store.save();

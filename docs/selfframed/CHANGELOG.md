@@ -17,3 +17,8 @@ Basis: Upstream **v12.2**.
 - Einstellungen: Hauptschalter (aus = Upstream-Verhalten), Einblendung, Presets verwalten.
 - Leistungsanzeige: Zeile „Bildstufe“.
 - CI (GitHub Actions), wöchentlicher Upstream-Wächter, Sync-Skript, Hook-Prüfung, Runbooks.
+- Nach unabhängigem Review: Das Bedienfeld fasst den Maus-Einfang nicht mehr an (verhinderte hängende Modifikatoren am
+  Host), verbraucht nur eigene Tasten, lässt Gamepads durch. Die GPU-Stufe verbindet sich erst zuletzt mit dem Fenster
+  (sicherer Rückfall nach Zeitüberschreitung), wählt exakt 8-Bit, blockiert beim Schließen nicht, baut das Fenster nach
+  Fehlern neu auf und meldet Ausfälle sichtbar. Testbild nach Bildschirm aus/an wieder sichtbar, Preset-Verwaltung
+  liest beim Zurückkehren neu.

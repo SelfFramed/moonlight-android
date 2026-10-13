@@ -83,6 +83,8 @@ public final class GradingController implements GradingEditorHost {
     private final boolean osdEnabled;
     private final StreamHost streamHost;
     private final PresetStore store;
+    /** Battery warnings on the stream (selfframed/battery); part of the stream UI like the notices. */
+    private final com.limelight.selfframed.battery.BatteryWarner battery;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
     private volatile GradingRenderer renderer;
@@ -155,6 +157,7 @@ public final class GradingController implements GradingEditorHost {
         this.streamHost = streamHost != null ? streamHost : NO_STREAM;
         this.osdEnabled = osdEnabled;
         this.store = new PresetStore(activity);
+        this.battery = com.limelight.selfframed.battery.BatteryWarner.create(activity, overlayParent);
         int active = store.bundle().getActiveSlot();
         this.lastPresetSlot = PresetBundle.isPresetSlot(active) ? active : 1;
 
@@ -257,6 +260,7 @@ public final class GradingController implements GradingEditorHost {
     public void onDestroy() {
         destroyed = true;
         uiHandler.removeCallbacksAndMessages(null);
+        battery.release();
         store.save();
         releaseRenderer();
     }
@@ -317,6 +321,11 @@ public final class GradingController implements GradingEditorHost {
     /** Ctrl+Alt+Shift+keyCode was pressed (key down). Auto-repeat is ignored. */
     public void onHotkey(int keyCode) {
         if (lastKeyWasRepeat || destroyed) {
+            return;
+        }
+        if (GradingHotkeys.actionFor(keyCode) == GradingHotkeys.ACTION_BATTERY) {
+            // Works without the GPU stage, too
+            battery.onHotkey();
             return;
         }
         if (!isStageActive()) {

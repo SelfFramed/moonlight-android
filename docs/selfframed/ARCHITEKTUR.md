@@ -172,6 +172,31 @@ oder Drift kommen. Welche Ursache es ist, zeigt am Gerät die Zeile „Ton“ de
 Weitere Tests: `JitterPolicyTest` und `PcmBlendTest`. Debug-Builds enthalten außerdem `AudioBufferTestActivity`
 (`app/src/debug/`): Testton mit 80 ms Pause alle 5 s, Ausgabe im Bildschirm und im Log `SfAudioTest`.
 
+## 5c. Akku (`selfframed/battery/`)
+
+Im Vollbild-Stream auf dem Lapdock sind Statusleiste und Androids Akkuwarnungen nicht zu sehen. Deshalb warnt der Fork
+selbst, innerhalb des Streams.
+
+- `BatteryWatch` (reines Java, `BatteryWatchTest`) trifft die Entscheidungen.
+  - Bereiche: normal, niedrig (≤ erste Schwelle, Standard 15 %) und kritisch (≤ zweite Schwelle, Standard 7 %).
+  - Ohne Laden wird gewarnt, sobald der Bereich schlechter wird als der in dieser Entladung zuletzt gewarnte: „niedrig“
+    als kurzer Hinweis, „kritisch“ als stehender.
+  - Laden heißt Akkustatus „lädt“ oder „voll“, nicht nur „eingesteckt“. Es beendet die Entladung, setzt beide Stufen
+    zurück und entfernt die stehende Warnung. Eine kurze Bestätigung „Lädt“ gibt es nur, wenn vorher gewarnt wurde.
+  - Ausblenden (Strg+Alt+Shift+B) gilt bis zum nächsten Prozentpunkt.
+- `BatteryWarner` (Android) liest `ACTION_BATTERY_CHANGED` (sticky, registriert in der Stream-Activity) und zeigt eine
+  Plakette oben in der Mitte, im Stil der Einblendungen: schwarz auf weiß, ohne Transparenz und Animation. Stehend hat
+  sie einen dicken Rahmen statt einer Farbe.
+  - Kurzer Hinweis 8 s, Bestätigung und Abruf 4 s.
+  - Bei „eingesteckt, lädt aber nicht“ steht das in einer zweiten Zeile.
+  - Die erste Prüfung nach dem Start wartet 2,5 s, damit der Start-Hinweis zuerst lesbar ist.
+  - Der Text wird nur bei Änderungen neu gesetzt, weil jede Änderung auf E-Ink einen Bildwechsel kostet.
+- Eigentümer ist `GradingController`, der Stream-Controller des Forks (Einblendungen, Kürzel, Bedienfeld). Es gibt also
+  keinen zusätzlichen Eingriff in Upstream-Dateien. Folge: Mit „Bildanpassung im Stream“ aus gibt es auch keine
+  Akkuwarnung. Das Kürzel B ist `GradingHotkeys.ACTION_BATTERY` und wirkt auch, wenn die GPU-Stufe nicht läuft.
+- Prüfen ohne echten Akku: `adb shell dumpsys battery unplug`, `… set status 3`, `… set level 15` usw., am Ende
+  `… reset`. Das geht auf dem Testbild (`GradingTestPatternActivity`) wie im Stream.
+
 ## 6. Einhängepunkte in Upstream-Dateien
 
 Vollständige Liste mit Zweck: [PATCHES.md](PATCHES.md). Alle sind mit `[SelfFramed]` markiert;

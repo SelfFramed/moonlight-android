@@ -24,7 +24,7 @@
     <string name="sf_title_grading_presets">Presets verwalten</string>
     <string name="sf_summary_grading_presets">Exportieren, importieren, Startwerte wiederherstellen</string>
     <string name="sf_title_grading_hotkeys">Tastenkürzel</string>
-    <string name="sf_summary_grading_hotkeys">Strg+Alt+Shift + 1–9 Preset · 0 Neutral · F Filter an/aus · P Bild-Bedienfeld · ← / → voriges / nächstes Preset</string>
+    <string name="sf_summary_grading_hotkeys">Strg+Alt+Shift + 1–9 Preset · 0 Neutral · F Filter an/aus · P Bild-Bedienfeld · ← / → voriges / nächstes Preset · B Akku</string>
 
     <!-- Einblendungen -->
     <string name="sf_osd_preset">%1$d · %2$s</string>
@@ -92,4 +92,20 @@
     <string name="sf_audio_out_unknown">Ausgang unbekannt</string>
     <string name="sf_audio_mode_fast">schnell</string>
     <string name="sf_audio_mode_normal">normal</string>
+    <!-- Akkuwarnung (selfframed/battery) -->
+    <string name="sf_title_battery_warn">Akkuwarnung im Stream</string>
+    <string name="sf_summary_battery_warn">Kurzer Hinweis bei der ersten Schwelle, ab der zweiten ein Hinweis, der stehen bleibt, bis der Akku lädt. Strg+Alt+Shift+B zeigt den Akkustand.</string>
+    <string name="sf_title_battery_low">Erste Warnung</string>
+    <string name="sf_summary_battery_low">bei %s, 8 Sekunden lang</string>
+    <string name="sf_title_battery_critical">Bleibende Warnung</string>
+    <string name="sf_summary_battery_critical">ab %s, bis der Akku lädt</string>
+    <string name="sf_battery_low">Akku %1$d\u00A0%% · bald laden</string>
+    <string name="sf_battery_critical">Akku %1$d\u00A0%% · jetzt laden</string>
+    <string name="sf_battery_charging">Lädt · %1$d\u00A0%%</string>
+    <string name="sf_battery_status">Akku %1$d\u00A0%%</string>
+    <string name="sf_battery_unknown">Akkustand unbekannt</string>
+    <string name="sf_battery_state_charging">lädt</string>
+    <string name="sf_battery_state_full">voll</string>
+    <string name="sf_battery_state_unplugged">nicht angeschlossen</string>
+    <string name="sf_battery_state_plugged_not_charging">angeschlossen, lädt aber nicht</string>
 </resources>

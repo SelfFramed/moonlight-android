@@ -25,7 +25,7 @@
     <string name="sf_title_grading_presets">Manage presets</string>
     <string name="sf_summary_grading_presets">Export, import, restore defaults</string>
     <string name="sf_title_grading_hotkeys">Hotkeys</string>
-    <string name="sf_summary_grading_hotkeys">Ctrl+Alt+Shift + 1–9 preset · 0 neutral · F filter on/off · P picture panel · ← / → previous / next preset</string>
+    <string name="sf_summary_grading_hotkeys">Ctrl+Alt+Shift + 1–9 preset · 0 neutral · F filter on/off · P picture panel · ← / → previous / next preset · B battery</string>
 
     <!-- On-screen notices -->
     <string name="sf_osd_preset">%1$d · %2$s</string>
@@ -93,4 +93,20 @@
     <string name="sf_audio_out_unknown">output unknown</string>
     <string name="sf_audio_mode_fast">fast path</string>
     <string name="sf_audio_mode_normal">normal path</string>
+    <!-- Battery warnings (selfframed/battery) -->
+    <string name="sf_title_battery_warn">Battery warning in the stream</string>
+    <string name="sf_summary_battery_warn">Short notice at the first level, a notice that stays from the second one until the battery charges. Ctrl+Alt+Shift+B shows the battery state.</string>
+    <string name="sf_title_battery_low">First warning</string>
+    <string name="sf_summary_battery_low">at %s, shown for 8 seconds</string>
+    <string name="sf_title_battery_critical">Lasting warning</string>
+    <string name="sf_summary_battery_critical">from %s until the battery charges</string>
+    <string name="sf_battery_low">Battery %1$d\u00A0%% · charge soon</string>
+    <string name="sf_battery_critical">Battery %1$d\u00A0%% · charge now</string>
+    <string name="sf_battery_charging">Charging · %1$d\u00A0%%</string>
+    <string name="sf_battery_status">Battery %1$d\u00A0%%</string>
+    <string name="sf_battery_unknown">Battery state unknown</string>
+    <string name="sf_battery_state_charging">charging</string>
+    <string name="sf_battery_state_full">full</string>
+    <string name="sf_battery_state_unplugged">not plugged in</string>
+    <string name="sf_battery_state_plugged_not_charging">plugged in, but not charging</string>
 </resources>

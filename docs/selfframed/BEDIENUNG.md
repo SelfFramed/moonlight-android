@@ -28,6 +28,7 @@ Alle Kürzel laufen über **Strg+Alt+Shift** (Moonlights Schema für Client-Kür
 | Strg+Alt+Shift+**P** | Bild-Bedienfeld öffnen/schließen |
 | Strg+Alt+Shift+**→** / **Bild↓** | nächstes Preset (Reihenfolge: Neutral, 1 … 9) |
 | Strg+Alt+Shift+**←** / **Bild↑** | voriges Preset |
+| Strg+Alt+Shift+**B** | Akkustand kurz anzeigen; ist die stehende Akkuwarnung da, sie bis zum nächsten Prozentpunkt ausblenden |
 
 Unverändert von Upstream: Strg+Alt+Shift+**Q** beendet den Stream, **Z** gibt Maus und Tastatur frei oder fängt sie
 wieder ein, **C** blendet den Mauszeiger ein und aus.
@@ -37,6 +38,17 @@ Einstellungen. Der Wechsel wirkt sofort, auch wenn sich im Bild gerade nichts be
 
 Beim Stream-Start erscheint der Hinweis mit aktivem Preset und Strg+Alt+Shift+P nur bei den ersten 3 Streams. Danach
 nur, wenn „Hinweis beim Stream-Start immer zeigen“ eingeschaltet ist.
+
+**Akkuwarnung (Telefon):** Im Stream siehst du die Statusleiste nicht. Deshalb warnt der Fork oben in der Mitte:
+
+- bei 15 % 8 Sekunden lang: „Akku 15 % · bald laden“;
+- ab 7 % bleibend, mit dickem Rahmen: „Akku 7 % · jetzt laden“. Die Zahl zählt mit, und die Warnung verschwindet erst,
+  wenn der Akku wirklich lädt. Dann erscheint kurz „Lädt · 7 %“.
+- Steckt das Telefon am Lapdock und der Akku sinkt trotzdem, steht darunter „angeschlossen, lädt aber nicht“.
+- Jede Stufe meldet sich einmal pro Entladung. Startest du den Stream schon unter einer Schwelle, kommt die Warnung nach
+  2–3 Sekunden.
+- Strg+Alt+Shift+**B** zeigt jederzeit den Akkustand. Ist die bleibende Warnung im Weg, blendet B sie bis zum nächsten
+  Prozentpunkt aus.
 
 ## 3. Bild-Bedienfeld (Strg+Alt+Shift+P)
 
@@ -120,6 +132,9 @@ Einstellungen → E-Ink-Bild → **Presets verwalten**:
 | Bildanpassung im Stream | Hauptschalter. Aus = exakt das Verhalten des offiziellen Moonlight (kein GPU-Schritt). |
 | Preset-Wechsel einblenden | die kurze Einblendung bei Wechseln |
 | Hinweis beim Stream-Start immer zeigen | sonst nur bei den ersten 3 Streams |
+| Akkuwarnung im Stream | an (Standard) oder aus; braucht „Bildanpassung im Stream“ |
+| Erste Warnung | 10, 15 (Standard), 20 oder 25 %: kurzer Hinweis |
+| Bleibende Warnung | 3, 5, 7 (Standard) oder 10 %: bleibt, bis der Akku lädt |
 | Presets verwalten | Testbild, Export, Import, Startwerte |
 | Tastenkürzel | Übersicht |
 | Updates (SelfFramed) | automatische Update-Suche an/aus, „Jetzt nach Updates suchen“ (zeigt die installierte Version) |

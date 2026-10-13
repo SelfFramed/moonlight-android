@@ -3,6 +3,17 @@
 Format: neueste Version oben. Upstream-Änderungen stehen im Upstream-Repo; hier nur Fork-Änderungen und welche
 Upstream-Version übernommen wurde.
 
+## 12.2-sf.4 (13.10.2026)
+
+Wunsch Martin (13.10.2026): eine Akkuwarnung, weil im Stream nichts vom Telefon-Akku zu sehen ist.
+
+- Akkuwarnung im Stream, oben in der Mitte und im E-Ink-Stil: bei 15 % ein kurzer Hinweis, ab 7 % eine bleibende Warnung
+  mit dickem Rahmen, bis der Akku wirklich lädt; dann kurz „Lädt“. Erkennt auch „angeschlossen, lädt aber nicht“, etwa
+  ein schwaches Lapdock.
+- Strg+Alt+Shift+B: Akkustand auf Abruf; blendet die bleibende Warnung bis zum nächsten Prozentpunkt aus.
+- Einstellungen: Akkuwarnung an/aus, erste Warnung (10/15/20/25 %), bleibende Warnung (3/5/7/10 %).
+- Kein zusätzlicher Eingriff in Upstream-Dateien.
+
 ## 12.2-sf.3 (12.10.2026)
 
 Rückmeldung Martin (12.10.2026): Der Ton „laggt“, im offiziellen Moonlight wie im Fork.

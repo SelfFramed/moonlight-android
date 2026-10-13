@@ -3,9 +3,9 @@ package com.limelight.selfframed.grading;
 import android.view.KeyEvent;
 
 /**
- * The picture hotkeys. Each one is pressed together with Ctrl+Alt+Shift, Moonlight's
- * modifier for client-side shortcuts (upstream already uses Z, Q and C). The combo never
- * reaches the host.
+ * The fork's stream hotkeys (picture, plus B for the battery). Each one is pressed together with
+ * Ctrl+Alt+Shift, Moonlight's modifier for client-side shortcuts (upstream already uses Z, Q and
+ * C). The combo never reaches the host.
  *
  * To add a hotkey: add an action constant, map a key code in {@link #actionFor(int)}, handle
  * it in {@link GradingController#onHotkey(int)} and list it in docs/selfframed/BEDIENUNG.md.
@@ -20,6 +20,8 @@ public final class GradingHotkeys {
     public static final int ACTION_TOGGLE_PANEL = 3;
     public static final int ACTION_NEXT_SLOT = 4;
     public static final int ACTION_PREVIOUS_SLOT = 5;
+    /** Battery state on demand, or hide the critical battery notice until the next percent drop. */
+    public static final int ACTION_BATTERY = 6;
 
     private GradingHotkeys() {
     }
@@ -33,6 +35,8 @@ public final class GradingHotkeys {
                 return ACTION_TOGGLE_FILTER;
             case KeyEvent.KEYCODE_P:
                 return ACTION_TOGGLE_PANEL;
+            case KeyEvent.KEYCODE_B:
+                return ACTION_BATTERY;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
             case KeyEvent.KEYCODE_PAGE_DOWN:
                 return ACTION_NEXT_SLOT;

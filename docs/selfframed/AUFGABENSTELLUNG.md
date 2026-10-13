@@ -132,3 +132,34 @@ automatische Belichtungsanpassung (Histogramm → dynamische Kurve) andocken kan
   `game-curves.js`, gegen Node-Referenz getestet).
 - Mittel: Startwerte der E-Ink-Presets. Sie sind begründete Schätzungen und brauchen den Sehtest am Gerät.
 - Offen bis zum Gerätetest: tatsächliche Zusatzlatenz und Verhalten mit dem Glider bei 75 Hz.
+
+## Nachtrag 13.10.2026: Akkuwarnung im Stream
+
+**Impuls (Martin):** Eine Akkuwarnung als Toast, wenn der Akku des Clients unter 15 % fällt, bei 7 % noch einmal, und
+dann bleibt sie stehen. Ausdrücklich nur Impulse.
+
+**Erschlossener Intent:** Im Vollbild-Stream auf dem E-Ink-Lapdock sind Statusleiste und Androids Akkuwarnungen
+unsichtbar, und der Telefonbildschirm ist verdeckt. Martin will nicht davon überrascht werden, dass der Client leer
+läuft und der Stream mitten in der Arbeit abreißt.
+
+**Steelman:**
+- Zwei Stufen: eine Vorwarnung mit Zeit zum Abschließen und Einstecken, dann eine Warnung, die stehen bleibt, bis
+  tatsächlich Strom fließt.
+- Kein System-Toast: Er landet womöglich auf dem verdeckten Telefonbildschirm, ist grau, halbtransparent und animiert
+  (auf E-Ink schlecht lesbar, mit Schlieren) und kann nicht stehen bleiben. Stattdessen eine eigene Einblendung im
+  E-Ink-Stil der Bildstufe.
+- Maßgeblich ist „lädt“, nicht „eingesteckt“: Ein schwaches Lapdock kann den Akku trotz Kabel leeren, und das sagt die
+  Warnung dann auch.
+- Kein Gezappel: Jede Stufe meldet sich einmal pro Entladung. Laden setzt alles zurück. Startet ein Stream schon unter
+  einer Schwelle, wird sofort gewarnt.
+- Auf Abruf: Strg+Alt+Shift+B zeigt den Akkustand. Ist die stehende Warnung im Weg, blendet dasselbe Kürzel sie bis zum
+  nächsten Prozentpunkt aus.
+- Stört den Stream nicht: kein Fokus, keine Eingabe, kein Ton, möglichst wenige E-Ink-Bildwechsel. Schwellen und
+  Schalter sind einstellbar.
+
+**Abgrenzung:** Der Akku des Lapdocks ist nicht auslesbar. Es gibt keine Systembenachrichtigung. Die Warnung hängt am
+Hauptschalter „Bildanpassung im Stream“: aus = Upstream-Verhalten.
+
+**Umgesetzt in 12.2-sf.4**, siehe `ARCHITEKTUR.md` §5c und `BEDIENUNG.md`. Abweichung vom ersten Entwurf: Die Plakette
+sitzt oben in der Mitte statt oben rechts, weil rechts das Bild-Bedienfeld liegt und dort die Fensterknöpfe des Desktops
+sind.

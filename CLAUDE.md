@@ -65,6 +65,9 @@ ihn: Martins Wünsche einbauen, Upstream-Releases übernehmen.
 - Audio-Puffer ohne Stream (nur Debug-Build): `adb shell am start -n <appId>/com.limelight.selfframed.audio.AudioBufferTestActivity --ei amp 0`
   (Log-Tag `SfAudioTest`). Im Emulator nur mit Audio und stummgeschaltet (`-no-audio` hat kein Ausgabegerät); `amp 0`
   ist ein stummer Testton.
+- Akkuwarnung ohne echten Akku: Testbild öffnen, dann `adb shell dumpsys battery unplug` / `set status 3` /
+  `set level <n>` (Laden: `set ac 1`, `set status 2`), am Ende `dumpsys battery reset`. Emulator mit `-memory 4096`
+  starten; mit 2 GB lagert er aus.
 - GPU-Stufe ohne Stream: `GradingTestPatternActivity` (Testbild); auf Emulator oder Gerät per
   `adb shell am start -n <appId>/com.limelight.selfframed.grading.GradingTestPatternActivity`.
 - Vor jeder Freigabe: `docs/selfframed/TESTPROTOKOLL.md` am echten Gerät. Ergebnisse dort eintragen; Ungeprüftes als

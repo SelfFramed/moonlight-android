@@ -22,6 +22,28 @@
             android:title="@string/sf_title_grading_start_notice"
             android:summary="@string/sf_summary_grading_start_notice"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="sf_battery_warn"
+            android:dependency="sf_grading_enabled"
+            android:title="@string/sf_title_battery_warn"
+            android:summary="@string/sf_summary_battery_warn"
+            android:defaultValue="true" />
+        <ListPreference
+            android:key="sf_battery_low"
+            android:dependency="sf_battery_warn"
+            android:title="@string/sf_title_battery_low"
+            android:summary="@string/sf_summary_battery_low"
+            android:entries="@array/sf_battery_low_names"
+            android:entryValues="@array/sf_battery_low_values"
+            android:defaultValue="15" />
+        <ListPreference
+            android:key="sf_battery_critical"
+            android:dependency="sf_battery_warn"
+            android:title="@string/sf_title_battery_critical"
+            android:summary="@string/sf_summary_battery_critical"
+            android:entries="@array/sf_battery_critical_names"
+            android:entryValues="@array/sf_battery_critical_values"
+            android:defaultValue="7" />
         <com.limelight.selfframed.grading.SfPresetsPreference
             android:key="sf_grading_presets"
             android:dependency="sf_grading_enabled"

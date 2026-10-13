@@ -31,6 +31,10 @@ Rückmeldungen hat er sie dauerhaft erteilt (13.10.2026).
    (`GH_TOKEN` nur für diesen Aufruf; das aktive gh-Konto bleibt krausality).
 5. Die CI baut den Tag noch einmal und prüft Tag = `v` + versionName. Ein eigenes Release legt sie nicht an, solange
    keine Signatur-Secrets hinterlegt sind.
+6. Nachprüfen, was die App sehen wird: `releases/latest` muss den neuen Tag und denselben SHA-256 wie das Skript melden
+   (`gh api repos/SelfFramed/moonlight-android/releases/latest --jq '.tag_name, .assets[0].digest'`), und beide CI-Läufe
+   (Tag und `main`) müssen grün sein (`gh run list --repo SelfFramed/moonlight-android --limit 2`). Dann Martin sagen, dass
+   er über „Jetzt nach Updates suchen“ sofort aktualisieren kann (die App sucht sonst nur alle 6 Stunden).
 
 ## 3. Updates auf dem Telefon
 

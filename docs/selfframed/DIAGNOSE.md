@@ -32,6 +32,8 @@ Reihenfolge: Client, dann Host, dann Netz.
    - `tools\sf\diag\audio-loopback-probe.ps1` zeigt Standardgerät, Format und Geräteperiode, und wie gleichmäßig Windows
      den Ton an Sunshine liefert. Es spielt nichts ab.
    - `tools\sf\diag\audio-endpoints.ps1` listet alle Wiedergabegeräte mit Format.
+   - `tools\sf\diag\virtual-mic-check.ps1` zeigt Wiedergabe- und Aufnahmegeräte mit Zustand und prüft, ob ein
+     virtuelles Mikrofon (Standard: Steam Streaming Microphone) Ton durchreicht. Hintergrund: `ROADMAP.md`, Mikrofon.
 3. **Netz:** `tools\sf\diag\net-jitter.ps1 -Target <Telefon-IP>`. Das Telefon findet man mit
    `Get-NetNeighbor -AddressFamily IPv4 -State Reachable`; Android nutzt eine zufällige MAC.
 4. **Simulation:** In `JitterBufferSimTest` ein Szenario mit den gemessenen Werten anlegen. Dann zeigt sich, ob der

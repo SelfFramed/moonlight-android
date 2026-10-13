@@ -37,7 +37,7 @@ ihn: Martins Wünsche einbauen, Upstream-Releases übernehmen.
   Plattform installiert AGP selbst.
 - Release-Schlüssel: `C:\Users\mpp\.selfframed\keys\moonlight-release.jks` (+ `.properties` mit Passwort); lokal
   verdrahtet über `sf-signing.properties` (gitignored). Nie committen, nie ausgeben.
-- Releases: `powershell -File tools\sf\release-local.ps1 -DryRun`, dann ohne `-DryRun` (nur mit Martins Zustimmung).
+- Releases: `powershell -File tools\sf\release-local.ps1 -DryRun`, dann ohne `-DryRun` (Zustimmung siehe unten).
   Der Schlüssel bleibt lokal (Entscheidung 12.10.2026); die App aktualisiert sich selbst über GitHub-Releases
   (`docs/selfframed/RELEASE.md`).
 
@@ -53,8 +53,10 @@ ihn: Martins Wünsche einbauen, Upstream-Releases übernehmen.
   dauerhaft umstellen.
 - Branches: `master` = Upstream-Spiegel (nur Fast-Forward), `main` = Fork. Upstream-Releases per Merge
   (`tools/sf/sync-upstream.sh`), nie per Rebase.
-- **Pushen, Taggen und Veröffentlichen nur mit Martins ausdrücklicher Zustimmung.** Nichts auf sein Telefon installieren
-  ohne Zustimmung.
+- **Pushen, Taggen und Veröffentlichen nur mit Martins ausdrücklicher Zustimmung.** Dauerhaft erteilt (13.10.2026):
+  Korrekturen, die auf Martins Rückmeldungen zurückgehen, veröffentlicht Claude direkt (nach Tests und Probelauf) und
+  sagt es danach. Größere neue Funktionen weiterhin vorher abstimmen. Nichts auf sein Telefon installieren ohne
+  Zustimmung.
 
 ## Prüfen
 

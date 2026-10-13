@@ -2,7 +2,8 @@
 
 Stand: 12.10.2026. Entschieden am 12.10.2026 (Martin: „ok“): Der Signaturschlüssel bleibt **nur auf Martins PC**. Releases
 werden dort gebaut, signiert und auf GitHub veröffentlicht. Das Telefon aktualisiert sich über die **eingebaute
-Update-Funktion** der App, ohne Extra-App. Veröffentlichen nur mit Martins Zustimmung.
+Update-Funktion** der App, ohne Extra-App. Veröffentlichen nur mit Martins Zustimmung; für Korrekturen nach seinen
+Rückmeldungen hat er sie dauerhaft erteilt (13.10.2026).
 
 ## 1. Versionsschema
 
@@ -25,7 +26,7 @@ Update-Funktion** der App, ohne Extra-App. Veröffentlichen nur mit Martins Zust
 3. Probelauf: `powershell -File tools\sf\release-local.ps1 -DryRun`. Das Skript prüft Branch und Sauberkeit, baut mit
    niedriger Priorität (Unit-Tests und signiertes Release) und prüft Version und Signatur-Zertifikat. Es legt
    `build\sf-release\moonlight-eink-<version>-nonRoot-release.apk` und die Notizen ab.
-4. Mit Martins Zustimmung veröffentlichen: `powershell -File tools\sf\release-local.ps1` (`-Prerelease` für
+4. Veröffentlichen (Korrekturen nach Martins Rückmeldungen direkt, Neues nach Absprache): `powershell -File tools\sf\release-local.ps1` (`-Prerelease` für
    Vorabversionen). Das Skript taggt, pusht `main` und den Tag und legt das GitHub-Release als Konto **SelfFramed** an
    (`GH_TOKEN` nur für diesen Aufruf; das aktive gh-Konto bleibt krausality).
 5. Die CI baut den Tag noch einmal und prüft Tag = `v` + versionName. Ein eigenes Release legt sie nicht an, solange

@@ -169,7 +169,7 @@ PC und Telefon müssen im selben Netz sein.
 ### Ohne adb
 
 APK auf das Telefon kopieren (USB-Dateiübertragung oder Cloud), im Dateimanager öffnen und der App einmalig „Unbekannte Apps
-installieren“ erlauben. Für automatische Updates des Release-APKs: Obtainium (`RELEASE.md`, Abschnitt 4).
+installieren“ erlauben. Danach kommen Updates über die eingebaute Update-Funktion (`RELEASE.md`, Abschnitt 3).
 
 ### Erster Start
 
@@ -178,3 +178,59 @@ Client-Zertifikat. Kopplungen des offiziellen Moonlight gelten für sie nicht. J
 Host antippen (oder per IP bzw. Tailscale-Adresse hinzufügen); die App zeigt eine PIN. Diese PIN in der Sunshine-Weboberfläche
 (`https://localhost:47990` → PIN) eingeben. Sunshine führt den Fork danach als eigenen Client. Das offizielle Moonlight bleibt
 unverändert als Rückfallebene installiert.
+
+## 8. Emulator-Tests (auf Martins PC)
+
+Martin streamt diesen PC oft. Deshalb läuft höchstens ein Emulator, ohne Fenster und mit niedriger Priorität, und er
+wird danach wieder beendet.
+
+**Starten.** AVD `Medium_Phone_API_36.0` (API 36, x86_64):
+
+```powershell
+$sdk = "$env:LOCALAPPDATA\Android\Sdk"
+Start-Process "$sdk\emulator\emulator.exe" -WindowStyle Hidden -ArgumentList '-avd','Medium_Phone_API_36.0',
+  '-no-window','-no-boot-anim','-gpu','swiftshader_indirect','-cores','2','-memory','4096','-no-snapshot-save','-no-audio'
+```
+
+Danach:
+
+- Prozesse herabstufen: `Get-Process emulator*, qemu-system* | % { $_.PriorityClass = 'BelowNormal' }`.
+- Warten, bis `adb -s emulator-5554 shell getprop sys.boot_completed` 1 meldet (etwa 70 s), dann noch 30 bis 60 s
+  ruhen lassen.
+
+**Fallen und Gegenmittel**
+
+- `-memory 4096` ist nötig. Mit 2 GB lagert Android aus; dann erscheinen Dialoge wie „Process system isn't responding“,
+  und Ereignisse kommen verspätet.
+- `-no-audio` nur, wenn kein Ton gebraucht wird: Ohne Audiogerät legt Android keinen AudioTrack an. Für Audiotests mit
+  Ton starten, vorher prüfen, dass `dumpsys audio` bei STREAM_MUSIC „Muted: true“ zeigt, und den Testton mit
+  `--ei amp 0` starten.
+- adb immer mit `-s emulator-5554`. adb kennt manchmal veraltete Einträge (z. B. `emulator-5562 offline`), und Martins
+  Telefon darf nie versehentlich angesprochen werden.
+- Bildschirmfotos binärsicher aus Git Bash: `adb -s emulator-5554 exec-out screencap -p > 01-name.png`. Eine
+  PowerShell-Umleitung zerstört PNG-Dateien. Viele Fotos auf einen Blick: `python -I tools/sf/diag/screens-sheet.py
+  <Ordner>`.
+- ANR-Dialog: „Wait“ antippen (`adb -s emulator-5554 shell input tap <x> <y>`, Position aus einem Bildschirmfoto).
+- Schwarzes Bild kurz nach einem Absturz der Systemoberfläche: Das ist der Neustart von SystemUI, nicht die App.
+- Bildschirm wach halten: `svc power stayon true`, am Ende wieder `false`.
+
+**Werkzeuge im Emulator**
+
+| Zweck | Befehl (`adb -s emulator-5554 shell …`) |
+|---|---|
+| Panel nachbilden | `wm size 1600x1200`, am Ende `wm size reset` |
+| Deutsche App-Texte | `cmd locale set-app-locales com.selfframed.moonlight.debug --locales de-DE` |
+| Kürzel drücken | `input keycombination KEYCODE_CTRL_LEFT KEYCODE_ALT_LEFT KEYCODE_SHIFT_LEFT KEYCODE_B` |
+| Akku entladen | `dumpsys battery unplug`, `set status 3`, `set level <n>` |
+| Akku laden | `dumpsys battery set ac 1`, `set status 2` |
+| Eingesteckt, lädt aber nicht | `dumpsys battery set status 4` |
+| Akku zurücksetzen | `dumpsys battery reset` |
+
+**Beenden.** `adb -s emulator-5554 emu kill`, dann prüfen, dass keine `emulator`- und `qemu-system`-Prozesse übrig
+sind.
+
+**Fertige Prüfabläufe**
+
+- GPU-Stufe: `tools/sf/verify-gpu-stage.py`.
+- Update-Funktion: `RELEASE.md`, „Update-Funktion lokal testen“.
+- Audio-Puffer und Akkuwarnung: `CLAUDE.md`, „Prüfen“, und `TESTPROTOKOLL.md` F und G.

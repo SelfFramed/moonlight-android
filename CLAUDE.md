@@ -2,16 +2,21 @@
 
 Dieses Repo ist Martins Fork von `moonlight-stream/moonlight-android` für sein E-Ink-Lapdock: Moto G100 als
 Stream-Client, 13,3″-E-Ink-Panel (1600×1200, 16 Graustufen) am Glider-Board. Der Fork fügt eine GPU-Bildstufe hinzu
-(Gradationskurven, Presets, Kürzel, Bedienfeld) und soll dauerhaft mit Upstream zusammenführbar bleiben. Claude pflegt
-ihn: Martins Wünsche einbauen, Upstream-Releases übernehmen.
+(Gradationskurven, Presets, Kürzel, Bedienfeld), dazu einen Audio-Puffer gegen Aussetzer, eine Akkuwarnung im Stream und
+eine eingebaute Update-Funktion. Er soll dauerhaft mit Upstream zusammenführbar bleiben. Claude pflegt ihn: Martins
+Wünsche einbauen, Upstream-Releases übernehmen.
+
+Aktueller Stand und Offenes: `docs/selfframed/ROADMAP.md` (Abschnitt „Stand“) und `TESTPROTOKOLL.md` (Ergebnisse).
 
 ## Zuerst lesen
 
-1. `docs/selfframed/AUFGABENSTELLUNG.md`: Auftrag, Steelman, Randbedingungen (verbindlich)
+1. `docs/selfframed/AUFGABENSTELLUNG.md`: Auftrag, Steelman, Randbedingungen (verbindlich, mit Nachträgen)
+   und `docs/selfframed/ENTSCHEIDUNGEN.md`: was gilt, seit wann, warum (nicht ohne Martin neu aufrollen)
 2. `docs/selfframed/ARCHITEKTUR.md`: Pipeline, Threads, Lebenszyklus
 3. `docs/selfframed/PATCHES.md`: jeder Eingriff in Upstream-Dateien mit Absicht
-4. Je nach Aufgabe: `UPSTREAM_SYNC.md`, `BUILD.md`, `RELEASE.md`, `BEDIENUNG.md`, `PRESETS.md`, `TESTPROTOKOLL.md`,
-   `ROADMAP.md`, `CHANGELOG.md` (alle in `docs/selfframed/`)
+4. Je nach Aufgabe: `UPSTREAM_SYNC.md`, `BUILD.md` (auch Emulator, §8), `RELEASE.md`, `BEDIENUNG.md`, `PRESETS.md`,
+   `TESTPROTOKOLL.md`, `DIAGNOSE.md` (Ton, Bild, Netz, welche Version), `ROADMAP.md`, `CHANGELOG.md` (alle in
+   `docs/selfframed/`)
 
 ## Regeln
 
@@ -70,10 +75,27 @@ ihn: Martins Wünsche einbauen, Upstream-Releases übernehmen.
   starten; mit 2 GB lagert er aus.
 - GPU-Stufe ohne Stream: `GradingTestPatternActivity` (Testbild); auf Emulator oder Gerät per
   `adb shell am start -n <appId>/com.limelight.selfframed.grading.GradingTestPatternActivity`.
+- GPU-Stufe pixelgenau (Emulator): `tools/sf/verify-gpu-stage.py`. Emulator-Vorgehen und Fallen: `BUILD.md` §8.
+- Update-Funktion lokal: `RELEASE.md`, „Update-Funktion lokal testen“ (`tools/sf/update-test-server.py`).
 - Vor jeder Freigabe: `docs/selfframed/TESTPROTOKOLL.md` am echten Gerät. Ergebnisse dort eintragen; Ungeprüftes als
   offen markieren.
+
+## Werkzeug-Fallen auf diesem PC
+
+- Python-Patchskripte mit Windows-Pfaden nie als Bash-Heredoc schreiben. Backslashes werden zu Escapes: `\U` bricht ab,
+  `\a` wird still zum Steuerzeichen. Stattdessen das Skript mit dem Write-Werkzeug in den Scratchpad schreiben und
+  ausführen; im Code Raw-Strings oder `chr(92)` verwenden. Ersetzungen mit `assert s.count(old) == 1` absichern.
+- PowerShell 5.1: `>` zerstört Binärdateien (PNG; dafür Git Bash). Fehlerausgaben nativer Programme werden zu
+  Fehlerobjekten; in Skripten deshalb `$ErrorActionPreference = 'Continue'` und `$LASTEXITCODE` prüfen.
+- Keine rekursiven Dateisuchen über `%LOCALAPPDATA%` oder `%ProgramData%`: Sie dauern Minuten und belasten die Platte,
+  während Martin streamt. Gezielt suchen.
+- Port 8765 ist von einem anderen Dienst belegt; Testserver laufen auf 47911.
+- Das Sunshine-Log wirkt im Explorer leer (0 Byte, weil geöffnet): `tools/sf/diag/sunshine-log.ps1` liest es.
+- adb immer mit `-s emulator-5554`; nie Martins Telefon ansprechen ohne Zustimmung.
 
 ## Arbeitsweise mit Martin
 
 Bei größeren Aufträgen zuerst den Intent erschließen, steelmannen und als Aufgabenstellung ausschreiben (sichtbar im
 Ergebnis), dann ausführen. Er schreibt verdichtet; seine Korrekturen sind maßgeblich. Konfidenzen ehrlich markieren.
+Seine Vorgaben sind Impulse, keine Spezifikation: begründet abweichen, wenn es seinem Ziel besser dient, und die
+Abweichung nennen. Bei Rückmeldungen vom Gerät zuerst klären, welche Version er hat (`DIAGNOSE.md` §1).

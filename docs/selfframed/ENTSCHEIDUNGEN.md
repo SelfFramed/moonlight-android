@@ -1,0 +1,19 @@
+# Entscheidungen
+
+Was gilt, seit wann und warum. Neue Einträge kommen oben dazu. Ändert Martin etwas, wird der alte Eintrag nicht gelöscht,
+sondern als ersetzt markiert. Vor einer Änderung an etwas, das hier steht: den Grund lesen und nicht ohne Martin neu
+aufrollen.
+
+| Datum | Entscheidung | Warum | Quelle |
+|---|---|---|---|
+| 13.10.2026 | Akkuwarnung als eigene Plakette oben in der Mitte statt als Android-Toast. Bei 15 % kurz, ab 7 % bleibend bis „lädt“, dazu das Kürzel B. Sie hängt am Hauptschalter der Bildanpassung. | Ein Toast landet womöglich auf dem verdeckten Telefonbildschirm, ist grau, halbtransparent und animiert und kann nicht stehen bleiben. Rechts liegen das Bild-Bedienfeld und die Fensterknöpfe des Desktops. | Martins Wunsch; `AUFGABENSTELLUNG.md`, Nachtrag |
+| 13.10.2026 | Korrekturen nach Martins Rückmeldungen werden direkt veröffentlicht. Größere neue Funktionen werden vorher abgestimmt. | Spart ihm eine Runde. | Martin: „direkt veröffentlichen ist okay“ |
+| 12.10.2026 | Eigener Audiopuffer: „Automatisch“ startet bei 60 ms, wächst bis 250 ms und merkt sich den Wert. „Wie Moonlight“ bleibt als Option. | Upstreams 10-ms-Puffer bricht bei Hängern, WLAN-Spitzen und Uhrendrift. Auf E-Ink kommt das Bild ohnehin 100 bis 300 ms später. | Gerätetest: „Lagfestival“, danach „flawless“ |
+| 12.10.2026 | Die Maus fürs Bedienfeld wird erst freigegeben, wenn die Kombination losgelassen ist (+250 ms), wie bei Upstreams Z. | Eine sofortige Freigabe ließ Strg, Alt und Shift am Host hängen. | Review und Gerätetest |
+| 12.10.2026 | Der Hinweis beim Stream-Start erscheint nur bei den ersten 3 Streams, danach nur per Einstellung. | Jede Einblendung kostet auf E-Ink einen Bildwechsel, und er hat gestört. | Martin |
+| 12.10.2026 | Der Signaturschlüssel bleibt lokal, ohne GitHub-Secrets. Releases entstehen mit `tools/sf/release-local.ps1`. | Wer das Konto übernimmt, könnte sonst Updates ausstellen. | Martin: „ok“ |
+| 12.10.2026 | Keine Extra-App wie Obtainium; stattdessen eine eingebaute Update-Funktion. | Weniger Reibung. | Martin |
+| 12.10.2026 | Der Schlüssel wird über restic gesichert (`mpp backup`, Monthly und Quarterly). Kein Ausdruck, keine zusätzliche Verschlüsselung. | Ein Verlust kostet nur Neuinstallation und Kopplung. restic verschlüsselt (AES-256) und versioniert offline. | Martin: „jo“ |
+| 12.10.2026 | Repo unter github.com/SelfFramed, App-ID `com.selfframed.moonlight`, App-Name „Moonlight E-Ink“. | Eigene App neben dem offiziellen Moonlight. Upstream will keine offizielle ID in Forks. | Fork-Anlage |
+| 12.10.2026 | Die Bildanpassung läuft im Client als GPU-Stufe (LUT-Shader) zwischen Decoder und Anzeige. Die Kurvenmathematik ist 1:1 aus `game-curves.js` übernommen. | Die Korrektur gehört zum Display, nicht zum wechselnden Host. WASM und ReShade waren Impulse, keine Vorgaben. | `AUFGABENSTELLUNG.md` |
+| 12.10.2026 | Upstream-Dateien werden nur über markierte Hooks geändert. Upstream-Releases kommen per Merge herein. Hauptschalter aus heißt Upstream-Verhalten. | Der Fork soll dauerhaft zusammenführbar bleiben. | `AUFGABENSTELLUNG.md`, `PATCHES.md` |

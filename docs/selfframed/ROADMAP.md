@@ -2,13 +2,17 @@
 
 Stand: 12.10.2026. Reihenfolge = Vorschlag der Produktverantwortung (Claude). Martin entscheidet um.
 
-## Jetzt (12.2-sf.1)
+## Stand (13.10.2026, 12.2-sf.4)
 
 - [x] Fork-Fundament: eigene ID, Versionsschema, Signierung, CI, Upstream-Wächter, Runbooks
 - [x] GPU-Bildstufe: Kurven (Gesamt/R/G/B), Gamma, Helligkeit, Kontrast, Sättigung, Graustufen-Mischung
 - [x] 9 Presets + Neutral, Kürzel, Einblendung, Bedienfeld, Testbild, Export/Import
-- [ ] **Gerätetest** nach [TESTPROTOKOLL.md](TESTPROTOKOLL.md). Erst danach gilt die Version als freigegeben.
-- [ ] Repo `SelfFramed/moonlight-android` anlegen (Martin, siehe README), pushen, Secrets für signierte CI-Releases.
+- [x] Repo `SelfFramed/moonlight-android`, lokale Releases, eingebaute Update-Funktion (Signatur-Secrets bewusst nicht)
+- [x] 12.2-sf.2: Maus im Bedienfeld, Start-Hinweis nur 3-mal
+- [x] 12.2-sf.3: Audio-Puffer (am Gerät bestätigt: „flawless“)
+- [x] 12.2-sf.4: Akkuwarnung im Stream (am Gerät noch offen)
+- [ ] **Gerätetest, Rest** nach [TESTPROTOKOLL.md](TESTPROTOKOLL.md): B6–D, F2–F5 (Ton über längere Zeit),
+  G (Akku), Sehtest der Presets.
 
 ## Als Nächstes (klein, hoher Nutzen)
 

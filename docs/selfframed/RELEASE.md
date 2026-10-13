@@ -54,6 +54,24 @@ Rückmeldungen hat er sie dauerhaft erteilt (13.10.2026).
 
 Geprüft am 12.10.2026 im Emulator (API 36): 12.2-sf.1 → 12.2-sf.2 komplett über die eingebaute Funktion, gegen einen
 lokalen Testserver mit GitHub-gleicher Release-Beschreibung (`-Psf.updateApi=…`, siehe `app/selfframed.gradle`).
+Gerät: Martin hat 12.2-sf.2 und 12.2-sf.3 so installiert. Welche Version er gerade hat: `DIAGNOSE.md` §1.
+
+### Update-Funktion lokal testen (Emulator)
+
+1. **Version A, älter:** Release-Build mit Test-Adresse. Debug-Builds suchen nicht nach Updates.
+   `tools\sf\build-lowprio.ps1 -Tasks "assembleNonRootRelease -Psf.updateApi=http://10.0.2.2:47911/latest.json" -Wait`.
+   Die APK in einen leeren Testordner kopieren.
+2. **Version B, neuer, gleicher Schlüssel:** `sf.revision` lokal um 1 erhöhen (nicht committen) und normal
+   `assembleNonRootRelease` bauen. Die APK als `moonlight-eink-<version>-nonRoot-release.apk` in denselben Ordner legen.
+   Danach `sf.revision` zurücksetzen.
+3. **Server starten:** `python -I tools/sf/update-test-server.py <Ordner>\moonlight-eink-<version>-nonRoot-release.apk`.
+   Er schreibt `latest.json` und liefert auf 127.0.0.1:47911 mit Keep-Alive aus; der Emulator erreicht den PC als
+   10.0.2.2. Port 8765 ist auf Martins PC belegt. Pythons Standard-Server (HTTP/1.0) bricht große Downloads im
+   Emulator ab.
+4. **Durchspielen:** A installieren (`adb -s emulator-5554 install …`), dann Einstellungen → Updates → „Jetzt nach
+   Updates suchen“ → Installieren → einmalig „Aus dieser Quelle zulassen“ → Android bestätigt. Play Protect fragt
+   eventuell nach; dann „Ohne Scan installieren“. Prüfen: `dumpsys package com.selfframed.moonlight | grep versionCode`.
+5. **Aufräumen:** Server beenden (Strg+C), Testordner löschen, App im Emulator deinstallieren, Emulator beenden.
 
 ## 4. Signaturschlüssel
 

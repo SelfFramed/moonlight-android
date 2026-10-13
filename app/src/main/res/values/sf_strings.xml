@@ -110,15 +110,22 @@
     <string name="sf_battery_state_unplugged">not plugged in</string>
     <string name="sf_battery_state_plugged_not_charging">plugged in, but not charging</string>
     <!-- Microphone to the PC (selfframed/mic) -->
-    <string name="sf_title_mic_code">Microphone pairing code</string>
-    <string name="sf_dialog_mic_code">The code from the PC: file .selfframed\\mic\\pairing.txt in your user folder (the microphone receiver creates it). 20 characters, dashes optional. Empty = not paired.</string>
-    <string name="sf_summary_mic_code_none">Not paired. Microphone to the PC: enter the code from the PC (.selfframed\\mic\\pairing.txt).</string>
-    <string name="sf_summary_mic_code_set">Paired (…%1$s). In the stream Ctrl+Alt+Shift+M switches the microphone to the PC on and off.</string>
-    <string name="sf_mic_invalid">Invalid code: 20 characters like ABCD-EFGH-JKMN-PQRS-TVWX</string>
+    <string name="sf_title_mic">Microphone to the PC</string>
+    <string name="sf_summary_mic_none">No setup needed: press Ctrl+Alt+Shift+M in the stream. The first time the PC asks with a code; say yes once.</string>
+    <plurals name="sf_summary_mic_paired">
+        <item quantity="one">Paired with %d PC. In the stream Ctrl+Alt+Shift+M. Tap to forget the pairing.</item>
+        <item quantity="other">Paired with %d PCs. In the stream Ctrl+Alt+Shift+M. Tap to forget the pairings.</item>
+    </plurals>
+    <string name="sf_mic_forget_question">Forget all microphone pairings on this phone? The next Ctrl+Alt+Shift+M asks on the PC again.</string>
+    <string name="sf_mic_forget">Forget</string>
     <string name="sf_mic_on_badge">Mic on</string>
     <string name="sf_mic_off">Microphone off</string>
-    <string name="sf_mic_no_code">Microphone: enter the pairing code first (Settings → Audio)</string>
-    <string name="sf_mic_permission">Microphone: allow access, then Ctrl+Alt+Shift+M again</string>
+    <string name="sf_mic_pairing_wait">Microphone: pairing …</string>
+    <string name="sf_mic_pairing_badge">Confirm on the PC · code %1$s</string>
+    <string name="sf_mic_pairing_cancelled">Pairing cancelled</string>
+    <string name="sf_mic_pairing_rejected">Microphone: rejected on the PC</string>
+    <string name="sf_mic_pairing_failed">Microphone: pairing failed (%1$s)</string>
+    <string name="sf_mic_unpaired">Microphone: the PC no longer knows this phone. Ctrl+Alt+Shift+M pairs again.</string>
     <string name="sf_mic_stream_only">Microphone: only in the stream</string>
     <string name="sf_mic_error">Microphone stopped: %1$s</string>
 </resources>

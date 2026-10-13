@@ -77,14 +77,16 @@ Aktueller Stand und Offenes: `docs/selfframed/ROADMAP.md` (Abschnitt „Stand“
   `adb shell am start -n <appId>/com.limelight.selfframed.grading.GradingTestPatternActivity`.
 - GPU-Stufe pixelgenau (Emulator): `tools/sf/verify-gpu-stage.py`. Emulator-Vorgehen und Fallen: `BUILD.md` §8.
 - Update-Funktion lokal: `RELEASE.md`, „Update-Funktion lokal testen“ (`tools/sf/update-test-server.py`).
-- Mikrofon zum PC:
+- Mikrofon zum PC (v2: Kopplung wie Bluetooth):
   - Protokolltests PC: `python -m unittest discover -s tools/sf/mic -p "test_*.py"`.
-  - Ende-zu-Ende ohne Telefon: Empfänger läuft (Autostart), dann `python tools/sf/mic/send-test-tone.py` und parallel
+  - Ende-zu-Ende ohne Telefon und ohne Martins Kopplungen anzufassen: Test-Empfänger mit `--state-dir <temp>
+    --auto-accept --keep-default --port 48101`, dann `python tools/sf/mic/send-test-tone.py --port 48101` und parallel
     `python tools/sf/mic/measure-virtual-mic.py`.
-  - Android-Seite im Emulator (mit Audio, stumm): `pm grant … RECORD_AUDIO`, dann `MicSendTestActivity`. Den Code nie
-    ausgeben; per `$(head -1 ~/.selfframed/mic/pairing.txt)` übergeben.
-  - Der Empfänger ist eine PC-Komponente (`tools/sf/mic/receiver.py`). Nach Änderungen neu starten:
-    `install-autostart.ps1 -Remove`, dann `-StartNow`.
+  - Android-Seite im Emulator (mit Audio, stumm): den echten Empfänger kurz stoppen und auf Port 48100 einen
+    Test-Empfänger wie oben starten, dann `pm grant … RECORD_AUDIO` und `MicSendTestActivity`. Danach
+    `install-autostart.ps1 -StartNow`.
+  - Der echte Empfänger fragt beim Koppeln per Dialog auf Martins Bildschirm. Nie gegen ihn testen, ohne Martin zu
+    fragen. Nach Änderungen neu starten: `install-autostart.ps1 -Remove`, dann `-StartNow`.
 - Vor jeder Freigabe: `docs/selfframed/TESTPROTOKOLL.md` am echten Gerät. Ergebnisse dort eintragen; Ungeprüftes als
   offen markieren.
 

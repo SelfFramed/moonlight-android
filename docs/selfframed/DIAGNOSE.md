@@ -69,16 +69,24 @@ Ursache damals war Upstreams Audiopuffer (`ARCHITEKTUR.md` §5b), behoben in 12.
 ## 5. Mikrofon zum PC
 
 1. **Kommt etwas an?** In `%USERPROFILE%\.selfframed\mic\receiver.log`:
-   - „session … from …“ und „microphone on“ beim Einschalten: Der Weg funktioniert.
-   - „rejected … wrong code or damaged“: Der Kopplungscode in der App passt nicht zur Datei `pairing.txt`.
+   - „pairing request … accepted“: Die Kopplung hat geklappt.
+   - „session … from …“ und „microphone on“: Der Ton kommt an.
+   - „rejected … damaged or forged“: Das Paket war beschädigt oder gefälscht.
    - „clock difference or replay“: Die Uhrzeiten von Telefon und PC weichen um mehr als 2 Minuten ab.
    - Nichts davon: Der Empfänger läuft nicht. Starten mit `tools\sf\mic\install-autostart.ps1 -StartNow`.
-2. **Hört die Anwendung etwas?** `python tools/sf/mic/measure-virtual-mic.py` misst das virtuelle Mikrofon. Ein
-   Gegentest ohne Telefon: `python tools/sf/mic/send-test-tone.py`.
-3. **Ist das Gerät da und aktiv?** `tools\sf\diag\virtual-mic-check.ps1`. Ist die Wiedergabeseite deaktiviert (zum
-   Beispiel nach einem Steam-Update), in den Sound-Einstellungen wieder aktivieren.
-4. **Telefon:** In logcat zeigt `SelfFramed mic: sending to …` das Ziel und ob Echo- und Rauschunterdrückung aktiv
-   sind; beim Ausschalten steht die Zahl der gesendeten Pakete da.
+2. **Kopplung hängt bei „Am PC bestätigen“:** Der Dialog ist eventuell hinter einem Vollbildfenster. Alt+Tab oder die
+   Taskleiste („SelfFramed: Mikrofon koppeln“).
+3. **Hört die Anwendung etwas?** Sie sollte auf „Standard“ stehen; solange das Mikrofon an ist, ist es dann das
+   Steam-Mikrofon.
+   - Messen: `python tools/sf/mic/measure-virtual-mic.py`.
+   - Gegentest ohne Telefon: einen Test-Empfänger mit `--state-dir`, `--auto-accept`, `--keep-default` und
+     `--port 48101` starten, dann `python tools/sf/mic/send-test-tone.py --port 48101`.
+4. **Ist das Gerät aktiv?** `tools\sf\diag\virtual-mic-check.ps1`. Ist die Wiedergabeseite deaktiviert (zum Beispiel
+   nach einem Steam-Update), in den Sound-Einstellungen wieder aktivieren.
+5. **Standard-Mikrofon falsch:** Nach einem Absturz stellt der Empfänger beim nächsten Start den alten Standard wieder
+   her (`default-switched.json`). Von Hand geht das in den Windows-Soundeinstellungen.
+6. **Telefon:** In logcat stehen `SelfFramed mic: sending to …` (Ziel, Echo- und Rauschunterdrückung) und am Ende die
+   Zahl der gesendeten Pakete; `pairing failed` nennt den Grund.
 
 ## 6. Logs vom Telefon
 

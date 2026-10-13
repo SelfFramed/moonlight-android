@@ -11,7 +11,8 @@ Stand: 12.10.2026. Reihenfolge = Vorschlag der Produktverantwortung (Claude). Ma
 - [x] 12.2-sf.2: Maus im Bedienfeld, Start-Hinweis nur 3-mal
 - [x] 12.2-sf.3: Audio-Puffer (am Gerät bestätigt: „flawless“)
 - [x] 12.2-sf.4: Akkuwarnung im Stream (am Gerät noch offen)
-- [x] 12.2-sf.5: Mikrofon zum PC (Weg A; am Gerät noch offen, TESTPROTOKOLL H)
+- [x] 12.2-sf.5: Mikrofon zum PC (Weg A)
+- [x] 12.2-sf.6: Mikrofon koppeln wie Bluetooth, Standard-Mikrofon automatisch (am Gerät noch offen, TESTPROTOKOLL H)
 - [ ] **Gerätetest, Rest** nach [TESTPROTOKOLL.md](TESTPROTOKOLL.md): B6–D, F2–F5 (Ton über längere Zeit),
   G (Akku), Sehtest der Presets.
 

@@ -3,6 +3,21 @@
 Format: neueste Version oben. Upstream-Änderungen stehen im Upstream-Repo; hier nur Fork-Änderungen und welche
 Upstream-Version übernommen wurde.
 
+## 12.2-sf.6 (14.10.2026)
+
+Rückmeldung Martin (14.10.2026): Die Einrichtung des Mikrofons war zu umständlich (Code aus einer Datei abtippen,
+Mikrofon in jeder Anwendung auswählen).
+
+- Koppeln wie Bluetooth: Das erste Strg+Alt+Shift+M koppelt von selbst. Oben steht ein Code, am PC fragt ein Fenster mit
+  demselben Code, ein Klick auf „Ja“, fertig. Kein Code zum Abtippen mehr (ECDH mit Festlegung vorab, 6-stelliger
+  Vergleichscode).
+- Nach der Android-Berechtigung geht es von selbst weiter, ohne zweites M.
+- Solange das Mikrofon an ist, ist es am PC das Standard-Mikrofon; danach kommt das vorherige zurück. Anwendungen auf
+  „Standard“ brauchen keine Umstellung.
+- Kennt der PC das Telefon nicht mehr, koppelt das nächste M neu.
+- Einstellungen: „Mikrofon zum PC“ zeigt die Kopplungen und löscht sie auf Wunsch (statt „Mikrofon-Kopplungscode“).
+- Protokoll Version 2 (Geräte-ID im Paketkopf); der PC-Empfänger ist aktualisiert und hat die alte Code-Datei gelöscht.
+
 ## 12.2-sf.5 (13.10.2026)
 
 Wunsch Martin (13.10.2026): Das Mikrofon geht in Moonlight nicht. Das ist dort nicht umgesetzt; entschieden wurde Weg A.

@@ -14,28 +14,36 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.security.SecureRandom;
 
 /**
  * Records the phone's microphone and sends it to the PC receiver (tools/sf/mic/receiver.py): 10 ms frames at
- * 48 kHz mono, sealed with {@link MicPacket}, as UDP to port {@link MicPacket#PORT} of the streaming host. The
- * voice-call source turns on Android's echo canceller, so the stream's own sound from the phone's speaker is not
- * sent back. Runs on its own thread at audio priority.
+ * 48 kHz mono, sealed with {@link MicPacket} under the paired device id, as UDP to port {@link MicPacket#PORT} of
+ * the streaming host. The voice-call source turns on Android's echo canceller, so the stream's own sound from the
+ * phone's speaker is not sent back. Runs on its own thread at audio priority; a second thread listens for the PC
+ * saying it does not know this phone (any more).
  */
 final class MicSender {
     interface Listener {
-        /** Called on the sender thread when recording or sending cannot continue. */
+        /** Recording or sending cannot continue (sender thread). */
         void onMicFailed(String reason);
+
+        /** The PC does not know this phone's pairing (listener thread). */
+        void onUnpaired();
     }
 
     private final String host;
+    private final int device;
     private final byte[] key;
     private final Listener listener;
     private volatile boolean running;
+    private volatile DatagramSocket socket;
     private Thread thread;
 
-    MicSender(String host, byte[] key, Listener listener) {
+    MicSender(String host, int device, byte[] key, Listener listener) {
         this.host = host;
+        this.device = device;
         this.key = key;
         this.listener = listener;
     }
@@ -59,13 +67,32 @@ final class MicSender {
         }
     }
 
+    private void listenForPc(DatagramSocket s) {
+        byte[] buffer = new byte[64];
+        while (running) {
+            try {
+                DatagramPacket in = new DatagramPacket(buffer, buffer.length);
+                s.receive(in);
+                MicPairing.Packet p = MicPairing.parse(in.getData(), in.getLength());
+                if (p != null && p.type == MicPairing.UNKNOWN && running) {
+                    listener.onUnpaired();
+                    return;
+                }
+            } catch (SocketTimeoutException ignored) {
+                // Check running again
+            } catch (IOException e) {
+                return;
+            }
+        }
+    }
+
     private void run() {
         try {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
         } catch (RuntimeException ignored) {
         }
         AudioRecord recorder = null;
-        DatagramSocket socket = null;
+        DatagramSocket s = null;
         AcousticEchoCanceler aec = null;
         NoiseSuppressor ns = null;
         AutomaticGainControl agc = null;
@@ -73,8 +100,12 @@ final class MicSender {
         long sendFailures = 0;
         try {
             InetAddress address = InetAddress.getByName(host);
-            socket = new DatagramSocket();
-            socket.connect(address, MicPacket.PORT);
+            s = new DatagramSocket();
+            s.connect(address, MicPacket.PORT);
+            s.setSoTimeout(500);
+            socket = s;
+            final DatagramSocket listenSocket = s;
+            new Thread(() -> listenForPc(listenSocket), "SfMicListen").start();
 
             int minBytes = AudioRecord.getMinBufferSize(MicPacket.SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
                     AudioFormat.ENCODING_PCM_16BIT);
@@ -104,7 +135,7 @@ final class MicSender {
                 }
             }
 
-            MicPacket packer = new MicPacket(key, new SecureRandom().nextInt());
+            MicPacket packer = new MicPacket(key, device, new SecureRandom().nextInt());
             short[] frame = new short[MicPacket.FRAME_SAMPLES];
             recorder.startRecording();
             LimeLog.info("SelfFramed mic: sending to " + address.getHostAddress() + ":" + MicPacket.PORT +
@@ -124,7 +155,7 @@ final class MicSender {
                 }
                 byte[] packet = packer.seal(seq++, System.currentTimeMillis() / 1000, 0, frame, 0);
                 try {
-                    socket.send(new DatagramPacket(packet, packet.length));
+                    s.send(new DatagramPacket(packet, packet.length));
                     sent++;
                 } catch (IOException e) {
                     // Network gone for a moment (e.g. Wi-Fi roaming): keep recording, the PC fills silence
@@ -136,7 +167,7 @@ final class MicSender {
             java.util.Arrays.fill(frame, (short) 0);
             byte[] end = packer.seal(seq, System.currentTimeMillis() / 1000, MicPacket.FLAG_END, frame, 0);
             try {
-                socket.send(new DatagramPacket(end, end.length));
+                s.send(new DatagramPacket(end, end.length));
             } catch (IOException ignored) {
             }
         } catch (Exception e) {
@@ -145,6 +176,7 @@ final class MicSender {
                 listener.onMicFailed(e.getMessage() != null ? e.getMessage() : e.toString());
             }
         } finally {
+            running = false;
             if (recorder != null) {
                 try {
                     if (recorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
@@ -163,8 +195,8 @@ final class MicSender {
             if (agc != null) {
                 agc.release();
             }
-            if (socket != null) {
-                socket.close();
+            if (s != null) {
+                s.close();
             }
             LimeLog.info("SelfFramed mic: " + sent + " packets sent, " + sendFailures + " send failures");
         }

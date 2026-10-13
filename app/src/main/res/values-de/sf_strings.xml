@@ -109,15 +109,22 @@
     <string name="sf_battery_state_unplugged">nicht angeschlossen</string>
     <string name="sf_battery_state_plugged_not_charging">angeschlossen, lädt aber nicht</string>
     <!-- Mikrofon zum PC (selfframed/mic) -->
-    <string name="sf_title_mic_code">Mikrofon-Kopplungscode</string>
-    <string name="sf_dialog_mic_code">Der Code vom PC: Datei .selfframed\\mic\\pairing.txt im Benutzerordner (legt der Mikrofon-Empfänger an). 20 Zeichen, Bindestriche egal. Leer = nicht gekoppelt.</string>
-    <string name="sf_summary_mic_code_none">Nicht gekoppelt. Mikrofon zum PC: Code vom PC eintragen (.selfframed\\mic\\pairing.txt).</string>
-    <string name="sf_summary_mic_code_set">Gekoppelt (…%1$s). Im Stream schaltet Strg+Alt+Shift+M das Mikrofon zum PC an und aus.</string>
-    <string name="sf_mic_invalid">Ungültiger Code: 20 Zeichen wie ABCD-EFGH-JKMN-PQRS-TVWX</string>
+    <string name="sf_title_mic">Mikrofon zum PC</string>
+    <string name="sf_summary_mic_none">Nichts einzurichten: im Stream Strg+Alt+Shift+M drücken. Beim ersten Mal fragt der PC mit einem Code; einmal „Ja“.</string>
+    <plurals name="sf_summary_mic_paired">
+        <item quantity="one">Mit %d PC gekoppelt. Im Stream Strg+Alt+Shift+M. Tippen, um die Kopplung zu löschen.</item>
+        <item quantity="other">Mit %d PCs gekoppelt. Im Stream Strg+Alt+Shift+M. Tippen, um die Kopplungen zu löschen.</item>
+    </plurals>
+    <string name="sf_mic_forget_question">Alle Mikrofon-Kopplungen auf diesem Telefon löschen? Beim nächsten Strg+Alt+Shift+M fragt der PC wieder.</string>
+    <string name="sf_mic_forget">Löschen</string>
     <string name="sf_mic_on_badge">Mikro an</string>
     <string name="sf_mic_off">Mikrofon aus</string>
-    <string name="sf_mic_no_code">Mikrofon: erst den Kopplungscode eintragen (Einstellungen → Ton)</string>
-    <string name="sf_mic_permission">Mikrofon: Zugriff erlauben, dann erneut Strg+Alt+Shift+M</string>
+    <string name="sf_mic_pairing_wait">Mikrofon: koppeln …</string>
+    <string name="sf_mic_pairing_badge">Am PC bestätigen · Code %1$s</string>
+    <string name="sf_mic_pairing_cancelled">Koppeln abgebrochen</string>
+    <string name="sf_mic_pairing_rejected">Mikrofon: am PC abgelehnt</string>
+    <string name="sf_mic_pairing_failed">Mikrofon: Koppeln fehlgeschlagen (%1$s)</string>
+    <string name="sf_mic_unpaired">Mikrofon: Der PC kennt dieses Telefon nicht mehr. Strg+Alt+Shift+M koppelt neu.</string>
     <string name="sf_mic_stream_only">Mikrofon: nur im Stream</string>
     <string name="sf_mic_error">Mikrofon gestoppt: %1$s</string>
 </resources>

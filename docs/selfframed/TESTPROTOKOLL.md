@@ -97,6 +97,18 @@ Echter Verlauf oder simuliert (`adb shell dumpsys battery unplug`, `… set stat
 - [ ] G6 Strg+Alt+Shift+B ohne Warnung zeigt 4 s lang den Akkustand und ob er lädt.
 - [ ] G7 Stream bei 10 % starten: Nach 2–3 s kommt die Warnung (nach dem Start-Hinweis, nicht darüber).
 
+## H. Mikrofon zum PC
+
+- [ ] H1 Kopplungscode aus `C:\Users\mpp\.selfframed\mic\pairing.txt` in der App eintragen; Android fragt nach dem
+      Mikrofon-Zugriff.
+- [ ] H2 Im Stream Strg+Alt+Shift+M: „Mikro an“ steht oben. Am PC z. B. in den Windows-Soundeinstellungen bei
+      „Mikrofon (Steam Streaming Microphone)“ den Pegel beim Sprechen beobachten.
+- [ ] H3 In einem Anruf (Teams, Discord) mit „Mikrofon (Steam Streaming Microphone)“: verständlich, ohne hörbares Echo
+      des Stream-Tons, Verzögerung unauffällig.
+- [ ] H4 Strg+Alt+Shift+M erneut: „Mikrofon aus“, die Plakette verschwindet, am PC ist sofort Stille.
+- [ ] H5 Stream beenden, während es an ist: Es ist danach aus (das Log am PC zeigt „microphone off“).
+- [ ] H6 Über Tailscale von unterwegs: funktioniert wie im WLAN.
+
 ## Ergebnisse
 
 | Datum | Version | Gerät/ROM | A | B | C | D | Notizen |
@@ -105,6 +117,7 @@ Echter Verlauf oder simuliert (`adb shell dumpsys battery unplug`, `… set stat
 | 12.10.2026 | 12.2-sf.1 → 12.2-sf.2 (Release, Testserver) | Emulator API 36 | – | – | – | – | Update-Funktion durchgängig: Dialog, einmalige Erlaubnis, Download, Prüfungen, Bestätigung, installiert (versionCode 31502). Play Protect fragte einmal (ohne Scan installiert). Lehre: Pythons HTTP/1.0-Testserver bricht im Emulator große Downloads ab, deshalb ein Keep-Alive-Testserver. |
 | 12.10.2026 | 12.2-sf.3 (Debug) | Emulator API 36 | – | – | – | – | F6 bestanden: Die Wiedergabe startet nach dem Vorfüllen, Verzögerung 37–59 ms bei Ziel 60, 0 Aussetzer trotz 80 ms Pause alle 5 s, 2 Pakete ergänzt, Zeile „speaker, 48 kHz, normal path“. Ohne Audiogerät (`-no-audio`) legt Android keinen AudioTrack an; das ist eine Grenze des Emulators. Der Emulator puffert im Audiotreiber zusätzlich, die Aussetzerzahl ist deshalb nicht aufs Telefon übertragbar. |
 | 13.10.2026 | 12.2-sf.1 → sf.2 → sf.3 | Moto G100 | – | – | – | – | E2 bestanden: Martin hat 12.2-sf.2 und 12.2-sf.3 über die eingebaute Funktion installiert (GitHub zählte 2 bzw. 1 Download) und danach direkt gestreamt, die Kopplung blieb also erhalten. Presets nicht ausdrücklich geprüft. |
+| 13.10.2026 | 12.2-sf.5 (Debug) + PC-Empfänger | PC, Emulator API 36 | – | – | – | – | H-Vorstufen bestanden. Steam-Mikrofon als Kabel: Spitze 0,0300 hinein und heraus. PC Ende-zu-Ende: Test-Sender → Empfänger → virtuelles Mikrofon, 3 s mit 440 Hz bei Spitze 0,0500, danach Stille. Emulator → PC über die echte Android-Aufnahme: 457 Pakete ohne Sendefehler, Sitzung angenommen, Mikrofon auf und wieder zu. Prüfwert Java = Python. Am Telefon offen (H1–H6). |
 | 13.10.2026 | 12.2-sf.4 (Debug) | Emulator API 36, 1600×1200, App auf Deutsch | – | – | – | – | G1–G6 bestanden, mit simuliertem Akku auf dem Testbild und Bildschirmfotos aller Stufen: 15 % kurz mit dünnem Rahmen; 7 % und 6 % bleibend mit dickem Rahmen; B blendet aus, bei 5 % wieder da; Laden zeigt „Lädt · 5 %“ und entfernt die Warnung; B zeigt „Akku 5 % / lädt“; „angeschlossen, lädt aber nicht“ wird bei Status 4 angezeigt. Der Emulator brauchte 4 GB RAM; mit 2 GB lagerte er aus, und System-Dialoge verdeckten das Bild. Ein schwarzes Bild kam vom Neustart der Emulator-Systemoberfläche, nicht von der App. |
 | 13.10.2026 | 12.2-sf.3 | Moto G100 | – | – | – | – | F2 teilweise: Martin: vorher ein „Lagfestival“, jetzt nach 2 Minuten „flawless“. Offen: längerer Test (F2 mit 10 Minuten), Werte der Zeile „Ton“, F3–F5. |
 | 13.10.2026 | 12.2-sf.2 (vermutlich) | Moto G100 | – | – | – | – | Martin: „am Ton hat sich gar nichts geändert“. Erwartet: Der Audio-Puffer kam erst mit 12.2-sf.3, die zu dem Zeitpunkt noch nicht veröffentlicht war. GitHub zählte zwei Downloads von sf.2. Ton-Test (F) mit sf.3 offen. |

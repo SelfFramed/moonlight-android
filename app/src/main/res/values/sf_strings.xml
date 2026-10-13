@@ -25,7 +25,7 @@
     <string name="sf_title_grading_presets">Manage presets</string>
     <string name="sf_summary_grading_presets">Export, import, restore defaults</string>
     <string name="sf_title_grading_hotkeys">Hotkeys</string>
-    <string name="sf_summary_grading_hotkeys">Ctrl+Alt+Shift + 1–9 preset · 0 neutral · F filter on/off · P picture panel · ← / → previous / next preset · B battery</string>
+    <string name="sf_summary_grading_hotkeys">Ctrl+Alt+Shift + 1–9 preset · 0 neutral · F filter on/off · P picture panel · ← / → previous / next preset · B battery · M microphone</string>
 
     <!-- On-screen notices -->
     <string name="sf_osd_preset">%1$d · %2$s</string>
@@ -109,4 +109,16 @@
     <string name="sf_battery_state_full">full</string>
     <string name="sf_battery_state_unplugged">not plugged in</string>
     <string name="sf_battery_state_plugged_not_charging">plugged in, but not charging</string>
+    <!-- Microphone to the PC (selfframed/mic) -->
+    <string name="sf_title_mic_code">Microphone pairing code</string>
+    <string name="sf_dialog_mic_code">The code from the PC: file .selfframed\\mic\\pairing.txt in your user folder (the microphone receiver creates it). 20 characters, dashes optional. Empty = not paired.</string>
+    <string name="sf_summary_mic_code_none">Not paired. Microphone to the PC: enter the code from the PC (.selfframed\\mic\\pairing.txt).</string>
+    <string name="sf_summary_mic_code_set">Paired (…%1$s). In the stream Ctrl+Alt+Shift+M switches the microphone to the PC on and off.</string>
+    <string name="sf_mic_invalid">Invalid code: 20 characters like ABCD-EFGH-JKMN-PQRS-TVWX</string>
+    <string name="sf_mic_on_badge">Mic on</string>
+    <string name="sf_mic_off">Microphone off</string>
+    <string name="sf_mic_no_code">Microphone: enter the pairing code first (Settings → Audio)</string>
+    <string name="sf_mic_permission">Microphone: allow access, then Ctrl+Alt+Shift+M again</string>
+    <string name="sf_mic_stream_only">Microphone: only in the stream</string>
+    <string name="sf_mic_error">Microphone stopped: %1$s</string>
 </resources>

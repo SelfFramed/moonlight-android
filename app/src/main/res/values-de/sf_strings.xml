@@ -24,7 +24,7 @@
     <string name="sf_title_grading_presets">Presets verwalten</string>
     <string name="sf_summary_grading_presets">Exportieren, importieren, Startwerte wiederherstellen</string>
     <string name="sf_title_grading_hotkeys">Tastenkürzel</string>
-    <string name="sf_summary_grading_hotkeys">Strg+Alt+Shift + 1–9 Preset · 0 Neutral · F Filter an/aus · P Bild-Bedienfeld · ← / → voriges / nächstes Preset · B Akku</string>
+    <string name="sf_summary_grading_hotkeys">Strg+Alt+Shift + 1–9 Preset · 0 Neutral · F Filter an/aus · P Bild-Bedienfeld · ← / → voriges / nächstes Preset · B Akku · M Mikrofon</string>
 
     <!-- Einblendungen -->
     <string name="sf_osd_preset">%1$d · %2$s</string>
@@ -108,4 +108,16 @@
     <string name="sf_battery_state_full">voll</string>
     <string name="sf_battery_state_unplugged">nicht angeschlossen</string>
     <string name="sf_battery_state_plugged_not_charging">angeschlossen, lädt aber nicht</string>
+    <!-- Mikrofon zum PC (selfframed/mic) -->
+    <string name="sf_title_mic_code">Mikrofon-Kopplungscode</string>
+    <string name="sf_dialog_mic_code">Der Code vom PC: Datei .selfframed\\mic\\pairing.txt im Benutzerordner (legt der Mikrofon-Empfänger an). 20 Zeichen, Bindestriche egal. Leer = nicht gekoppelt.</string>
+    <string name="sf_summary_mic_code_none">Nicht gekoppelt. Mikrofon zum PC: Code vom PC eintragen (.selfframed\\mic\\pairing.txt).</string>
+    <string name="sf_summary_mic_code_set">Gekoppelt (…%1$s). Im Stream schaltet Strg+Alt+Shift+M das Mikrofon zum PC an und aus.</string>
+    <string name="sf_mic_invalid">Ungültiger Code: 20 Zeichen wie ABCD-EFGH-JKMN-PQRS-TVWX</string>
+    <string name="sf_mic_on_badge">Mikro an</string>
+    <string name="sf_mic_off">Mikrofon aus</string>
+    <string name="sf_mic_no_code">Mikrofon: erst den Kopplungscode eintragen (Einstellungen → Ton)</string>
+    <string name="sf_mic_permission">Mikrofon: Zugriff erlauben, dann erneut Strg+Alt+Shift+M</string>
+    <string name="sf_mic_stream_only">Mikrofon: nur im Stream</string>
+    <string name="sf_mic_error">Mikrofon gestoppt: %1$s</string>
 </resources>

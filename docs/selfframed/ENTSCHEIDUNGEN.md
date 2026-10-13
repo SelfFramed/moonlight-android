@@ -6,6 +6,7 @@ aufrollen.
 
 | Datum | Entscheidung | Warum | Quelle |
 |---|---|---|---|
+| 13.10.2026 | Mikrofon zum PC als eigener, verschlüsselter Seitenkanal (Weg A), nicht über Sunshine. Ziel ist das schon vorhandene Steam-Mikrofon. Der Empfänger startet per Autostart, nicht über einen Sunshine-Eintrag. | Upstream kann es nicht, und dort ist nichts absehbar. Kein Host-Wechsel, kein Fremdtreiber, keine Adminrechte. Der Autostart ist weniger invasiv als ein Sunshine-Eintrag. | Martin: „A bauen ja“; Analyse in `ROADMAP.md` |
 | 13.10.2026 | Akkuwarnung als eigene Plakette oben in der Mitte statt als Android-Toast. Bei 15 % kurz, ab 7 % bleibend bis „lädt“, dazu das Kürzel B. Sie hängt am Hauptschalter der Bildanpassung. | Ein Toast landet womöglich auf dem verdeckten Telefonbildschirm, ist grau, halbtransparent und animiert und kann nicht stehen bleiben. Rechts liegen das Bild-Bedienfeld und die Fensterknöpfe des Desktops. | Martins Wunsch; `AUFGABENSTELLUNG.md`, Nachtrag |
 | 13.10.2026 | Korrekturen nach Martins Rückmeldungen werden direkt veröffentlicht. Größere neue Funktionen werden vorher abgestimmt. | Spart ihm eine Runde. | Martin: „direkt veröffentlichen ist okay“ |
 | 12.10.2026 | Eigener Audiopuffer: „Automatisch“ startet bei 60 ms, wächst bis 250 ms und merkt sich den Wert. „Wie Moonlight“ bleibt als Option. | Upstreams 10-ms-Puffer bricht bei Hängern, WLAN-Spitzen und Uhrendrift. Auf E-Ink kommt das Bild ohnehin 100 bis 300 ms später. | Gerätetest: „Lagfestival“, danach „flawless“ |

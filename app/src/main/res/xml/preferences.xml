@@ -66,6 +66,14 @@
             android:entries="@array/sf_audio_buffer_names"
             android:entryValues="@array/sf_audio_buffer_values"
             android:defaultValue="auto" />
+        <com.limelight.selfframed.mic.SfMicCodePreference
+            android:key="sf_mic_code"
+            android:dependency="sf_grading_enabled"
+            android:title="@string/sf_title_mic_code"
+            android:dialogTitle="@string/sf_title_mic_code"
+            android:dialogMessage="@string/sf_dialog_mic_code"
+            android:inputType="textCapCharacters|textNoSuggestions"
+            android:singleLine="true" />
     </PreferenceCategory>
 
     <!-- [SelfFramed] Self-update from the fork's GitHub releases (docs/selfframed/BEDIENUNG.md) -->

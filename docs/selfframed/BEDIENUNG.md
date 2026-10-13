@@ -29,6 +29,7 @@ Alle Kürzel laufen über **Strg+Alt+Shift** (Moonlights Schema für Client-Kür
 | Strg+Alt+Shift+**→** / **Bild↓** | nächstes Preset (Reihenfolge: Neutral, 1 … 9) |
 | Strg+Alt+Shift+**←** / **Bild↑** | voriges Preset |
 | Strg+Alt+Shift+**B** | Akkustand kurz anzeigen; ist die stehende Akkuwarnung da, sie bis zum nächsten Prozentpunkt ausblenden |
+| Strg+Alt+Shift+**M** | Mikrofon zum PC an/aus (solange an: Plakette „Mikro an“) |
 
 Unverändert von Upstream: Strg+Alt+Shift+**Q** beendet den Stream, **Z** gibt Maus und Tastatur frei oder fängt sie
 wieder ein, **C** blendet den Mauszeiger ein und aus.
@@ -49,6 +50,19 @@ nur, wenn „Hinweis beim Stream-Start immer zeigen“ eingeschaltet ist.
   2–3 Sekunden.
 - Strg+Alt+Shift+**B** zeigt jederzeit den Akkustand. Ist die bleibende Warnung im Weg, blendet B sie bis zum nächsten
   Prozentpunkt aus.
+
+**Mikrofon zum PC:** Das Telefon-Mikrofon kommt am PC als „Mikrofon (Steam Streaming Microphone)“ an. In Teams, Discord
+oder einem Diktierprogramm dieses Gerät als Mikrofon wählen.
+
+- **Einmalig koppeln:** Am PC die Datei `C:\Users\mpp\.selfframed\mic\pairing.txt` öffnen; die erste Zeile ist der
+  Kopplungscode. In der App unter Einstellungen → Ton (SelfFramed) → „Mikrofon-Kopplungscode“ eintragen
+  (Bindestriche egal). Android fragt dann einmal nach dem Mikrofon-Zugriff: erlauben.
+- **Im Stream:** Strg+Alt+Shift+**M** schaltet das Mikrofon an und aus. Solange es an ist, steht oben „Mikro an“. Bei
+  jedem Stream-Start ist es aus, beim Stream-Ende geht es aus.
+- Auf dem PC empfängt ein kleines Programm ohne Fenster den Ton. Es startet bei der Anmeldung von selbst (Autostart
+  „SelfFramed Mikrofon“).
+- Über den Telefonlautsprecher zurückkommender Stream-Ton wird von Androids Echo-Unterdrückung herausgefiltert. Mit
+  Kopfhörern am Telefon gibt es gar kein Echo.
 
 ## 3. Bild-Bedienfeld (Strg+Alt+Shift+P)
 
@@ -143,6 +157,7 @@ In der Kategorie „Ton (SelfFramed)“:
 
 | Einstellung | Wirkung |
 |---|---|
+| Mikrofon-Kopplungscode | Code vom PC (`.selfframed\mic\pairing.txt`) für „Mikrofon zum PC“; leer = aus. Braucht „Bildanpassung im Stream“. |
 | Audio-Puffer | **Automatisch (empfohlen):** startet mit 60 ms Vorrat, wächst nach Aussetzern von selbst (bis 250 ms) und merkt sich den Wert für den nächsten Stream. **50/100/200 ms:** feste Größe. **Wie Moonlight:** der minimale Puffer des offiziellen Moonlight (geringste Latenz, kann knacksen). |
 
 ## 8. Leistungsanzeige
@@ -170,5 +185,6 @@ Sie zeigt:
 | Kürzel wirken nicht | Alle drei Modifikatoren (Strg, Alt, Shift) halten; ist das Bedienfeld offen, wirken die Tasten dort. |
 | Steile Kurven zeigen Blöcke/Bänder | Kurven verstärken Kompressionsartefakte. Bitrate erhöhen oder die Kurve sanfter machen. |
 | Ton knackst oder setzt aus | Leistungsanzeige ansehen. Steigt „Aussetzer“, wächst der Puffer bei „Automatisch“ von selbst; sonst „Audio-Puffer“ höher stellen. Mit Bluetooth-Kopfhörern hilft 5-GHz-WLAN, weil sich 2,4-GHz-WLAN das Funkband mit Bluetooth teilt. |
+| Mikrofon kommt am PC nicht an | In der Anwendung „Mikrofon (Steam Streaming Microphone)“ wählen. Läuft der Empfänger? `%USERPROFILE%\.selfframed\mic\receiver.log` zeigt „microphone on“ beim Einschalten; „rejected … wrong code“ heißt: Code in der App stimmt nicht. Sonst `DIAGNOSE.md` §5. |
 | Ton kommt zu spät | „Audio-Puffer“ auf 50 ms. Auf E-Ink erscheint das Bild ohnehin später als der Ton. |
 | Alles kaputt | Einstellungen → Bildanpassung im Stream aus und Audio-Puffer „Wie Moonlight“, oder das offizielle Moonlight nehmen. |

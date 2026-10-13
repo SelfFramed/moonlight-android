@@ -3,7 +3,7 @@ package com.limelight.selfframed.grading;
 import android.view.KeyEvent;
 
 /**
- * The fork's stream hotkeys (picture, plus B for the battery). Each one is pressed together with
+ * The fork's stream hotkeys (picture, plus B for the battery and M for the microphone). Each one is pressed together with
  * Ctrl+Alt+Shift, Moonlight's modifier for client-side shortcuts (upstream already uses Z, Q and
  * C). The combo never reaches the host.
  *
@@ -22,6 +22,8 @@ public final class GradingHotkeys {
     public static final int ACTION_PREVIOUS_SLOT = 5;
     /** Battery state on demand, or hide the critical battery notice until the next percent drop. */
     public static final int ACTION_BATTERY = 6;
+    /** Microphone to the PC on/off (selfframed/mic). */
+    public static final int ACTION_MIC = 7;
 
     private GradingHotkeys() {
     }
@@ -37,6 +39,8 @@ public final class GradingHotkeys {
                 return ACTION_TOGGLE_PANEL;
             case KeyEvent.KEYCODE_B:
                 return ACTION_BATTERY;
+            case KeyEvent.KEYCODE_M:
+                return ACTION_MIC;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
             case KeyEvent.KEYCODE_PAGE_DOWN:
                 return ACTION_NEXT_SLOT;

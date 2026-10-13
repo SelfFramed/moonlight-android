@@ -197,6 +197,46 @@ selbst, innerhalb des Streams.
 - Prüfen ohne echten Akku: `adb shell dumpsys battery unplug`, `… set status 3`, `… set level 15` usw., am Ende
   `… reset`. Das geht auf dem Testbild (`GradingTestPatternActivity`) wie im Stream.
 
+## 5d. Mikrofon zum PC (`selfframed/mic/`, `tools/sf/mic/`)
+
+Moonlight und Sunshine haben keinen Rückkanal für Ton (Analyse: `ROADMAP.md`). Der Fork schickt das Mikrofon deshalb
+über einen eigenen, verschlüsselten Seitenkanal an den PC. Dort landet es in einem virtuellen Mikrofon, das jede
+Anwendung als Eingang wählen kann.
+
+- **Telefon:**
+  - `MicControl` gehört dem `GradingController` und hängt am Kürzel Strg+Alt+Shift+M. Das Mikrofon ist bei jedem
+    Stream-Start aus. Solange es an ist, zeigt die Statusspalte die Plakette „Mikro an“.
+  - Ohne Kopplungscode, Berechtigung oder Stream gibt es eine Einblendung statt einer Aktion. Beim Stream-Ende ist es
+    immer aus.
+  - `MicSender` nimmt mit `VOICE_COMMUNICATION` auf (48 kHz mono) und schaltet Echo-Unterdrückung, Rauschunterdrückung
+    und Pegelregelung ein, soweit vorhanden. Er sendet alle 10 ms ein Paket per UDP an den Stream-Host
+    (`Game.EXTRA_HOST`), Port 48100, mit Audio-Priorität.
+  - Kurze Netzfehler beenden das Mikrofon nicht. Fehler bei der Aufnahme schon, mit Einblendung.
+- **Protokoll** (`MicPacket` und `tools/sf/mic/sfmic.py`, Byte für Byte gleich und gegen einen gemeinsamen Prüfwert
+  getestet):
+  - 20 Byte Kopf: Magic „SM“, Version, Flags (Ende), Sitzung, Sendezeit, Folgenummer. Danach AES-128-GCM über
+    10 ms PCM (16 Bit LE), mit dem Kopf als Zusatzdaten. Ein Paket hat 996 Byte und bleibt unter Tailscales
+    1280-Byte-MTU.
+  - Schlüssel: SHA-256 über den Kopplungscode, 20 Zeichen Crockford-Base32 (100 Bit).
+  - Nonce: Sitzung plus Folgenummer.
+- **PC:** `tools/sf/mic/receiver.py` (Python, `sounddevice` und `cryptography`) läuft ohne Fenster und startet bei der
+  Anmeldung über eine Verknüpfung im Autostart (`install-autostart.ps1`).
+  - Er nimmt nur Pakete an, die mit dem Code versiegelt sind, deren Sendezeit höchstens 2 Minuten abweicht und deren
+    Folgenummern steigen.
+  - Der Puffer zielt auf 40 ms. Über 150 ms Rückstand kürzt er auf das Ziel; läuft er leer, baut er neu auf.
+  - Er spielt in die Wiedergabeseite von „Steam Streaming Microphone“ (WASAPI mit Formatwandlung). Anwendungen nehmen
+    von „Mikrofon (Steam Streaming Microphone)“ auf.
+  - Den Ausgang öffnet er beim ersten Paket. Er schließt ihn beim Ende-Signal oder nach 2 s Stille.
+  - Code und Log liegen in `%USERPROFILE%\.selfframed\mic\`; der Ordner ist in den restic-Sicherungen.
+- **Warum kein Sunshine-Eintrag:** Ein Autostart des Empfängers braucht weder Administratorrechte noch eine Änderung an
+  Sunshine. Ohne Pakete wartet er nur.
+- **Warum das Steam-Mikrofon:** Es war schon installiert (Steam Remote Play). Es reicht Ton verlustfrei durch (gemessen:
+  Spitze 0,0500 hinein und heraus, 440 Hz), und ein Fremdtreiber wie VB-Cable entfällt. Seine Wiedergabeseite war
+  deaktiviert und wurde am 13.10.2026 aktiviert (`IPolicyConfig::SetEndpointVisibility`, ohne Adminrechte).
+- **Tests:** `MicPacketTest` (JVM, inklusive Prüfwert) und `tools/sf/mic/test_sfmic.py`. Ende-zu-Ende auf dem PC:
+  `send-test-tone.py` sendet, `measure-virtual-mic.py` misst. Debug-Builds enthalten `MicSendTestActivity` (Emulator
+  oder Telefon an 10.0.2.2 bzw. den PC).
+
 ## 6. Einhängepunkte in Upstream-Dateien
 
 Vollständige Liste mit Zweck: [PATCHES.md](PATCHES.md). Alle sind mit `[SelfFramed]` markiert;

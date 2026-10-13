@@ -3,6 +3,18 @@
 Format: neueste Version oben. Upstream-Änderungen stehen im Upstream-Repo; hier nur Fork-Änderungen und welche
 Upstream-Version übernommen wurde.
 
+## 12.2-sf.5 (13.10.2026)
+
+Wunsch Martin (13.10.2026): Das Mikrofon geht in Moonlight nicht. Das ist dort nicht umgesetzt; entschieden wurde Weg A.
+
+- Mikrofon zum PC: Strg+Alt+Shift+M schickt das Telefon-Mikrofon mit Echo-Unterdrückung verschlüsselt an den PC. Dort
+  steht es als „Mikrofon (Steam Streaming Microphone)“ allen Anwendungen zur Verfügung. Solange es an ist, zeigt die
+  Plakette „Mikro an“ das an. Bei jedem Stream-Start ist es aus.
+- Einstellung „Mikrofon-Kopplungscode“ (Ton); fragt beim Eintragen nach dem Mikrofon-Zugriff.
+- PC: Empfänger `tools/sf/mic/receiver.py`, startet bei der Anmeldung. Die Wiedergabeseite des Steam-Mikrofons ist
+  aktiviert.
+- Akku- und Mikrofon-Plakette teilen sich eine Statusspalte oben in der Mitte und überdecken sich nicht.
+
 ## 12.2-sf.4 (13.10.2026)
 
 Wunsch Martin (13.10.2026): eine Akkuwarnung, weil im Stream nichts vom Telefon-Akku zu sehen ist.

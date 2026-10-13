@@ -11,10 +11,11 @@ Stand: 12.10.2026. Reihenfolge = Vorschlag der Produktverantwortung (Claude). Ma
 - [x] 12.2-sf.2: Maus im Bedienfeld, Start-Hinweis nur 3-mal
 - [x] 12.2-sf.3: Audio-Puffer (am Gerät bestätigt: „flawless“)
 - [x] 12.2-sf.4: Akkuwarnung im Stream (am Gerät noch offen)
+- [x] 12.2-sf.5: Mikrofon zum PC (Weg A; am Gerät noch offen, TESTPROTOKOLL H)
 - [ ] **Gerätetest, Rest** nach [TESTPROTOKOLL.md](TESTPROTOKOLL.md): B6–D, F2–F5 (Ton über längere Zeit),
   G (Akku), Sehtest der Presets.
 
-## Zur Entscheidung: Mikrofon zum PC (Analyse 13.10.2026)
+## Mikrofon zum PC: Analyse 13.10.2026, Weg A umgesetzt in 12.2-sf.5
 
 Martin: „Mikrofon geht nicht in Moonlight.“ **Ursache: nicht umgesetzt.** Das gilt für das offizielle Moonlight und für
 Sunshine; es ist kein Fehler und keine Einstellung.

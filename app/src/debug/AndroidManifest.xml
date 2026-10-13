@@ -7,5 +7,10 @@
             android:name="com.limelight.selfframed.audio.AudioBufferTestActivity"
             android:exported="true"
             android:label="Audio buffer test" />
+        <!-- Microphone sender test without a stream (docs/selfframed/TESTPROTOKOLL.md, H) -->
+        <activity
+            android:name="com.limelight.selfframed.mic.MicSendTestActivity"
+            android:exported="true"
+            android:label="Microphone sender test" />
     </application>
 </manifest>

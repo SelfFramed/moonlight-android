@@ -19,7 +19,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.limelight.LimeLog;
@@ -27,8 +27,8 @@ import com.limelight.R;
 
 /**
  * Battery warnings for the client inside the stream (docs/selfframed/ARCHITEKTUR.md): the phone's
- * status bar and Android's own warnings are not visible on the e-ink lapdock. A badge at the top
- * centre in the e-ink style of the other notices (black on white, thick border, no transparency,
+ * status bar and Android's own warnings are not visible on the e-ink lapdock. A badge in the status
+ * column at the top centre, in the e-ink style of the other notices (black on white, thick border, no transparency,
  * no animation): a short notice at the first threshold, a notice that stays from the second one
  * until the battery charges, and the battery state on demand (Ctrl+Alt+Shift+B). The decisions
  * are made by {@link BatteryWatch}. UI thread only.
@@ -46,7 +46,7 @@ public final class BatteryWarner {
     private static final int FIRST_CHECK_DELAY_MS = 2500;
 
     private final Activity activity;
-    private final FrameLayout parent;
+    private final ViewGroup column;
     private final BatteryWatch watch;
     private final boolean warningsEnabled;
     private final Handler ui = new Handler(Looper.getMainLooper());
@@ -99,18 +99,22 @@ public final class BatteryWarner {
         }
     };
 
-    private BatteryWarner(Activity activity, FrameLayout parent, boolean warningsEnabled, int lowPercent,
+    private BatteryWarner(Activity activity, ViewGroup column, boolean warningsEnabled, int lowPercent,
                           int criticalPercent) {
         this.activity = activity;
-        this.parent = parent;
+        this.column = column;
         this.warningsEnabled = warningsEnabled;
         this.watch = new BatteryWatch(lowPercent, criticalPercent);
     }
 
-    /** Created with the stream's controller; watches the battery if the warnings are switched on. */
-    public static BatteryWarner create(Activity activity, FrameLayout parent) {
+    /**
+     * Created with the stream's controller; watches the battery if the warnings are switched on.
+     *
+     * @param column the vertical status column at the top centre (shared with the microphone badge)
+     */
+    public static BatteryWarner create(Activity activity, ViewGroup column) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
-        BatteryWarner w = new BatteryWarner(activity, parent, prefs.getBoolean(PREF_ENABLED, true),
+        BatteryWarner w = new BatteryWarner(activity, column, prefs.getBoolean(PREF_ENABLED, true),
                 parsePercent(prefs.getString(PREF_LOW, null), DEFAULT_LOW),
                 parsePercent(prefs.getString(PREF_CRITICAL, null), DEFAULT_CRITICAL));
         if (w.warningsEnabled) {
@@ -289,7 +293,7 @@ public final class BatteryWarner {
         }
         if (badge.getVisibility() != View.VISIBLE) {
             badge.setVisibility(View.VISIBLE);
-            badge.bringToFront();
+            column.bringToFront();
         }
     }
 
@@ -306,11 +310,12 @@ public final class BatteryWarner {
         badge.setFocusable(false);
         badge.setClickable(false);
         styleBadge();
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-        lp.topMargin = dp(24);
-        parent.addView(badge, lp);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.gravity = Gravity.CENTER_HORIZONTAL;
+        lp.bottomMargin = dp(8);
+        // First in the column: the battery stays on top, the microphone badge below it
+        column.addView(badge, 0, lp);
     }
 
     /** No colour: urgency is a thicker border. */

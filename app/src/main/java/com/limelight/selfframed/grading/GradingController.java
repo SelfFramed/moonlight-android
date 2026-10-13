@@ -19,6 +19,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.limelight.LimeLog;
@@ -83,8 +84,12 @@ public final class GradingController implements GradingEditorHost {
     private final boolean osdEnabled;
     private final StreamHost streamHost;
     private final PresetStore store;
+    /** Badges that stay (battery, microphone): a column at the top centre, under the short notices. */
+    private final LinearLayout statusColumn;
     /** Battery warnings on the stream (selfframed/battery); part of the stream UI like the notices. */
     private final com.limelight.selfframed.battery.BatteryWarner battery;
+    /** Microphone to the PC (selfframed/mic), Ctrl+Alt+Shift+M. */
+    private final com.limelight.selfframed.mic.MicControl mic;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
     private volatile GradingRenderer renderer;
@@ -157,7 +162,14 @@ public final class GradingController implements GradingEditorHost {
         this.streamHost = streamHost != null ? streamHost : NO_STREAM;
         this.osdEnabled = osdEnabled;
         this.store = new PresetStore(activity);
-        this.battery = com.limelight.selfframed.battery.BatteryWarner.create(activity, overlayParent);
+        this.statusColumn = new LinearLayout(activity);
+        statusColumn.setOrientation(LinearLayout.VERTICAL);
+        FrameLayout.LayoutParams columnLp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        columnLp.topMargin = dp(24);
+        overlayParent.addView(statusColumn, columnLp);
+        this.battery = com.limelight.selfframed.battery.BatteryWarner.create(activity, statusColumn);
+        this.mic = new com.limelight.selfframed.mic.MicControl(activity, statusColumn, text -> showOsd(text, true));
         int active = store.bundle().getActiveSlot();
         this.lastPresetSlot = PresetBundle.isPresetSlot(active) ? active : 1;
 
@@ -261,6 +273,7 @@ public final class GradingController implements GradingEditorHost {
         destroyed = true;
         uiHandler.removeCallbacksAndMessages(null);
         battery.release();
+        mic.release();
         store.save();
         releaseRenderer();
     }
@@ -326,6 +339,10 @@ public final class GradingController implements GradingEditorHost {
         if (GradingHotkeys.actionFor(keyCode) == GradingHotkeys.ACTION_BATTERY) {
             // Works without the GPU stage, too
             battery.onHotkey();
+            return;
+        }
+        if (GradingHotkeys.actionFor(keyCode) == GradingHotkeys.ACTION_MIC) {
+            mic.onHotkey();
             return;
         }
         if (!isStageActive()) {

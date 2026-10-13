@@ -66,11 +66,26 @@ Ursache damals war Upstreams Audiopuffer (`ARCHITEKTUR.md` §5b), behoben in 12.
 - Ohne Stream: das Testbild (`GradingTestPatternActivity`). Im Emulator prüft `tools/sf/verify-gpu-stage.py` pixelgenau
   gegen die Original-Mathematik.
 
-## 5. Logs vom Telefon
+## 5. Mikrofon zum PC
+
+1. **Kommt etwas an?** In `%USERPROFILE%\.selfframed\mic\receiver.log`:
+   - „session … from …“ und „microphone on“ beim Einschalten: Der Weg funktioniert.
+   - „rejected … wrong code or damaged“: Der Kopplungscode in der App passt nicht zur Datei `pairing.txt`.
+   - „clock difference or replay“: Die Uhrzeiten von Telefon und PC weichen um mehr als 2 Minuten ab.
+   - Nichts davon: Der Empfänger läuft nicht. Starten mit `tools\sf\mic\install-autostart.ps1 -StartNow`.
+2. **Hört die Anwendung etwas?** `python tools/sf/mic/measure-virtual-mic.py` misst das virtuelle Mikrofon. Ein
+   Gegentest ohne Telefon: `python tools/sf/mic/send-test-tone.py`.
+3. **Ist das Gerät da und aktiv?** `tools\sf\diag\virtual-mic-check.ps1`. Ist die Wiedergabeseite deaktiviert (zum
+   Beispiel nach einem Steam-Update), in den Sound-Einstellungen wieder aktivieren.
+4. **Telefon:** In logcat zeigt `SelfFramed mic: sending to …` das Ziel und ob Echo- und Rauschunterdrückung aktiv
+   sind; beim Ausschalten steht die Zahl der gesendeten Pakete da.
+
+## 6. Logs vom Telefon
 
 Nur mit Martins Zustimmung und per adb (`BUILD.md` §7):
 `adb logcat -s com.limelight.LimeLog:I`. Darin stehen unter anderem:
 
 - `SelfFramed audio: …`: Puffer beim Start, Aussetzer und Ausgleich am Stream-Ende;
 - `SelfFramed battery: …`: Schwellen;
+- `SelfFramed mic: …`: Ziel, Effekte, gesendete Pakete;
 - `SelfFramed grading: …`: Bildstufe.

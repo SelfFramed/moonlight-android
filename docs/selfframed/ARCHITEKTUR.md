@@ -164,6 +164,8 @@ ein Modell von Upstreams Renderer):
 | Telefon-Uhr 200 ppm langsamer, 10 min | 0; 19 Pakete überblendet gekürzt | 15 Pakete hart verworfen |
 | Ausgabe nimmt 20 ms am Stück (wie Bluetooth) | 0 | 0 |
 
+Gerätetest 13.10.2026 (12.2-sf.3, Moto G100): Martin hörte vorher ein „Lagfestival“, jetzt nach 2 Minuten „flawless“.
+
 Unter den gemessenen Bedingungen ist auch Upstream fehlerfrei. Die Aussetzer am Gerät müssen also aus Hängern, Spitzen
 oder Drift kommen. Welche Ursache es ist, zeigt am Gerät die Zeile „Ton“ der Leistungsanzeige.
 

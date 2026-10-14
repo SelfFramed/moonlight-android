@@ -29,7 +29,7 @@ Alle Kürzel laufen über **Strg+Alt+Shift** (Moonlights Schema für Client-Kür
 | Strg+Alt+Shift+**→** / **Bild↓** | nächstes Preset (Reihenfolge: Neutral, 1 … 9) |
 | Strg+Alt+Shift+**←** / **Bild↑** | voriges Preset |
 | Strg+Alt+Shift+**B** | Akkustand kurz anzeigen; ist die stehende Akkuwarnung da, sie bis zum nächsten Prozentpunkt ausblenden |
-| Strg+Alt+Shift+**M** | Mikrofon zum PC an/aus (solange an: Plakette „Mikro an“) |
+| Strg+Alt+Shift+**M** | Mikrofon zum PC an/aus (beim Einschalten 3 s „Mikro an“) |
 
 Unverändert von Upstream: Strg+Alt+Shift+**Q** beendet den Stream, **Z** gibt Maus und Tastatur frei oder fängt sie
 wieder ein, **C** blendet den Mauszeiger ein und aus.
@@ -55,8 +55,10 @@ nur, wenn „Hinweis beim Stream-Start immer zeigen“ eingeschaltet ist.
 
 - **Strg+Alt+Shift+M** im Stream. Beim allerersten Mal fragt Android nach dem Mikrofon-Zugriff (erlauben) und koppelt
   dann mit dem PC: Oben steht „Am PC bestätigen · Code 123 456“. Auf dem PC-Desktop, den du im Stream siehst, fragt
-  ein Fenster mit demselben Code. Mit „Ja“ ist das Mikrofon an. Danach reicht M allein.
-- Solange es an ist, steht oben „Mikro an“, und es ist am PC das Standard-Mikrofon. Teams, Discord oder ein
+  ein Fenster mit demselben Code. Mit einem Klick auf „Zulassen“ ist das Mikrofon an. Danach reicht M allein.
+- Beim Einschalten steht oben 3 Sekunden lang „Mikro an“, danach ist das Bild wieder frei. Das Mikrofon bleibt an, bis
+  du M drückst („Mikrofon aus“) oder der Stream endet.
+- Solange es an ist, ist es am PC das Standard-Mikrofon. Teams, Discord oder ein
   Diktierprogramm mit der Einstellung „Standard“ hören es also ohne Umstellen. Beim Ausschalten (M) kommt dein
   vorheriges Standard-Mikrofon zurück, z. B. die UR44.
 - Bei jedem Stream-Start ist es aus, beim Stream-Ende geht es aus.

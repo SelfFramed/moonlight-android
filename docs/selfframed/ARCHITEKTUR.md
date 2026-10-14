@@ -208,8 +208,10 @@ an ist, ist dieses der Windows-Standard. Version 2 (12.2-sf.6) koppelt wie Bluet
     Stream-Start aus. Fehlt die Android-Berechtigung, fragt Android, und die App macht danach von selbst weiter
     (Abfrage alle 0,5 s, höchstens 60 s).
   - Ist der PC noch nicht gekoppelt, startet `MicPairer`. Die Statusspalte zeigt „Am PC bestätigen · Code 123 456“.
-    Nach „Ja“ am PC landet die Kopplung in `MicPairings` (SharedPreferences `sf_mic`, je PC-UUID: Geräte-ID und
-    Audio-Schlüssel). Dann folgt „Mikro an“.
+    Nach „Zulassen“ am PC landet die Kopplung in `MicPairings` (SharedPreferences `sf_mic`, je PC-UUID: Geräte-ID
+    und Audio-Schlüssel). Dann folgt „Mikro an“.
+  - „Mikro an“ steht nach jedem Einschalten 3 s (`ON_BADGE_MS`), dann verschwindet es in einem Schritt, ohne
+    Überblendung (E-Ink). Die Anzeige beim Koppeln bleibt bis zum Ende der Kopplung.
   - `MicSender` nimmt mit `VOICE_COMMUNICATION` auf (48 kHz mono, Echo- und Rauschunterdrückung sowie Pegelregelung,
     soweit vorhanden) und sendet alle 10 ms per UDP an den Stream-Host (`Game.EXTRA_HOST`), Port 48100.
   - Meldet der PC „unbekanntes Gerät“, weil seine Kopplung gelöscht wurde, löscht die App ihre Kopplung. Das nächste M

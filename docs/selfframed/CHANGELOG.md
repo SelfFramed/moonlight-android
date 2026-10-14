@@ -3,6 +3,15 @@
 Format: neueste Version oben. Upstream-Änderungen stehen im Upstream-Repo; hier nur Fork-Änderungen und welche
 Upstream-Version übernommen wurde.
 
+## 12.2-sf.7 (14.10.2026)
+
+Rückmeldung Martin (14.10.2026): „Mikro an“ stand die ganze Zeit im Bild.
+
+- „Mikro an“ steht nach dem Einschalten 3 Sekunden da und verschwindet dann. Das geschieht auf einen Schlag, ohne
+  Überblendung: Auf dem E-Ink-Panel hinterließe ein Ausblenden graue Zwischenstufen.
+- Das Mikrofon bleibt an, bis Strg+Alt+Shift+M es ausschaltet („Mikrofon aus“) oder der Stream endet.
+- Die Anzeige beim Koppeln („Am PC bestätigen · Code …“) bleibt stehen, bis die Kopplung fertig ist.
+
 ## 12.2-sf.6 (14.10.2026)
 
 Rückmeldung Martin (14.10.2026): Die Einrichtung des Mikrofons war zu umständlich (Code aus einer Datei abtippen,

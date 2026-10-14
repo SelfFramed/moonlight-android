@@ -211,6 +211,9 @@ Danach:
   PowerShell-Umleitung zerstört PNG-Dateien. Viele Fotos auf einen Blick: `python -I tools/sf/diag/screens-sheet.py
   <Ordner>`.
 - ANR-Dialog: „Wait“ antippen (`adb -s emulator-5554 shell input tap <x> <y>`, Position aus einem Bildschirmfoto).
+- Vor Kürzel-Tests warten, bis die Last unter 6 liegt (`cat /proc/loadavg`; nach dem Start oft 40), und den Fokus
+  prüfen (`dumpsys window | grep mCurrentFocus`). Sonst fängt „System UI isn't responding“ die Tasten ab, und alle
+  Bildschirmfotos sind gleich.
 - Schwarzes Bild kurz nach einem Absturz der Systemoberfläche: Das ist der Neustart von SystemUI, nicht die App.
 - Bildschirm wach halten: `svc power stayon true`, am Ende wieder `false`.
 

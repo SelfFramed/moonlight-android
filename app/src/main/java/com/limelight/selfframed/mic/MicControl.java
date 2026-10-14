@@ -22,13 +22,17 @@ import com.limelight.R;
  * "Mikrofon zum PC" in the stream (docs/selfframed/ARCHITEKTUR.md): Ctrl+Alt+Shift+M switches the phone's
  * microphone to the PC on and off. The first time for a PC it pairs like Bluetooth: the badge shows a code, the
  * PC asks with the same code, one click there and the microphone is on; afterwards M alone. A missing microphone
- * permission is asked for and the start continues by itself once granted. While on, a badge says so (Android's
- * privacy dot is on the phone's screen, not on the e-ink panel). Off at every stream start. UI thread only.
+ * permission is asked for and the start continues by itself once granted. Switching on shows "Mikro an" for a
+ * moment, then the picture is free again: a lasting badge was in the way (Martin, 14.10.2026), and Android's privacy
+ * dot is on the phone's screen, not on the e-ink panel. The pairing badge stays until the pairing ends. Off at every
+ * stream start. UI thread only.
  */
 public final class MicControl {
     static final int PERMISSION_REQUEST = 0x5F31;
     private static final int PERMISSION_POLL_MS = 500;
     private static final int PERMISSION_WAIT_MS = 60_000;
+    /** How long "Mikro an" stays. It disappears in one step: a fade would smear grey steps over the e-ink panel. */
+    private static final int ON_BADGE_MS = 3000;
 
     /** Where short messages go (the stream's notice). */
     public interface Notices {
@@ -45,6 +49,12 @@ public final class MicControl {
     private TextView badge;
     private boolean released;
     private long permissionAskedAt;
+
+    private final Runnable hideOnBadge = () -> {
+        if (pairer == null && badge != null && badge.getVisibility() != View.GONE) {
+            badge.setVisibility(View.GONE);
+        }
+    };
 
     private final Runnable waitForPermission = new Runnable() {
         @Override
@@ -196,6 +206,7 @@ public final class MicControl {
         sender = self[0];
         sender.start();
         showBadge(activity.getString(R.string.sf_mic_on_badge));
+        ui.postDelayed(hideOnBadge, ON_BADGE_MS);
     }
 
     public boolean isOn() {
@@ -205,6 +216,7 @@ public final class MicControl {
     private void stop() {
         permissionAskedAt = 0;
         ui.removeCallbacks(waitForPermission);
+        ui.removeCallbacks(hideOnBadge);
         MicPairer p = pairer;
         pairer = null;
         if (p != null) {
@@ -231,6 +243,7 @@ public final class MicControl {
     }
 
     private void showBadge(String text) {
+        ui.removeCallbacks(hideOnBadge);
         if (badge == null) {
             badge = new TextView(activity);
             badge.setTextColor(Color.BLACK);

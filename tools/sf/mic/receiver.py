@@ -29,6 +29,7 @@ import logging.handlers
 import os
 import secrets
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -44,6 +45,8 @@ IDLE_CLOSE_S = 2.0
 MAX_BUFFER_MS = 150
 MAX_AGE_S = 120
 PAIRING_TTL_S = 300
+# Below the phone's 120 s wait, so a late click cannot pair a phone that already gave up
+DIALOG_TIMEOUT_S = 110
 
 
 class Devices:
@@ -239,14 +242,19 @@ class Player:
 
 
 def ask(name, addr, code, done):
-    """Asks on this PC's screen (topmost, own thread) and calls done(accepted)."""
+    """Asks on this PC's screen with confirm_dialog.py (own process, always on top) and calls done(answer):
+    True = allowed, False = rejected, None = no answer in time."""
     def run():
-        text = ('„%s“ (%s) möchte das Mikrofon dieses PCs nutzen\n(Moonlight E-Ink: Mikrofon zum PC).\n\n'
-                'Code: %s\n\nDerselbe Code steht im Stream. Nur bei gleichem Code zulassen.\n\nZulassen?'
-                % (name or 'Telefon', addr, code))
-        # MB_YESNO | MB_ICONQUESTION | MB_TOPMOST | MB_SETFOREGROUND
-        answer = ctypes.windll.user32.MessageBoxW(None, text, 'SelfFramed: Mikrofon koppeln', 0x4 | 0x20 | 0x40000 | 0x10000)
-        done(answer == 6)
+        dialog = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'confirm_dialog.py')
+        try:
+            proc = subprocess.run([sys.executable, dialog, '--name', name or 'Telefon', '--addr', addr,
+                                   '--code', code, '--timeout', str(DIALOG_TIMEOUT_S)],
+                                  creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+                                  timeout=DIALOG_TIMEOUT_S + 30)
+            answer = {0: True, 1: False}.get(proc.returncode)
+        except (OSError, subprocess.SubprocessError):
+            answer = None
+        done(answer)
     threading.Thread(target=run, daemon=True).start()
 
 
@@ -326,14 +334,16 @@ class Receiver:
             self._reply_result(sock, addr, pid, p)
 
     def _decide(self, pid, p, accepted):
+        """accepted: True, False, or None (no answer: stays pending until the phone gives up)."""
         with self.lock:
             if accepted:
                 p.device = self.devices.add(p.name, p.audio_key, p.addr)
                 p.status = sfmic.ACCEPTED
-            else:
+            elif accepted is not None:
                 p.status = sfmic.REJECTED
         self.dialog_open = False
-        self.log.info('pairing with %s (%s): %s', p.addr, p.name, 'accepted' if accepted else 'rejected')
+        self.log.info('pairing with %s (%s): %s', p.addr, p.name,
+                      {True: 'accepted', False: 'rejected', None: 'no answer'}[accepted])
 
     def _audio(self, sock, data, addr):
         device = sfmic.audio_device(data)

@@ -227,8 +227,14 @@ an ist, ist dieses der Windows-Standard. Version 2 (12.2-sf.6) koppelt wie Bluet
   ein Audiopaket in beiden Sprachen Byte für Byte gleich (`MicPairingTest`, `test_sfmic.py`).
 - **PC:** `tools/sf/mic/receiver.py` (Python mit `sounddevice` und `cryptography`) startet ohne Fenster per Autostart
   (`install-autostart.ps1`).
-  - Kopplung: Er beantwortet die Kopplung und fragt per Windows-Dialog (immer im Vordergrund) mit demselben Code.
-    Gekoppelte Telefone stehen in `%USERPROFILE%\.selfframed\mic\devices.json`.
+  - Kopplung: Er beantwortet die Kopplung und fragt mit demselben Code über `confirm_dialog.py` (eigener Prozess,
+    tkinter). Das Fenster ist groß, schwarz auf weiß, steht mittig auf dem Bildschirm mit dem Mauszeiger (im Stream:
+    dem übertragenen) und wird jede Sekunde nach oben gelegt.
+    - Nur ein Klick auf „Zulassen“ zählt; es gibt keine Taste dafür und keinen Fokusraub.
+    - Nach 110 s ohne Antwort schließt es sich, also bevor das Telefon nach 120 s aufgibt.
+    - Gekoppelte Telefone stehen in `%USERPROFILE%\.selfframed\mic\devices.json`.
+    - Warum kein Windows-Meldungsfenster: Windows ignoriert „immer oben“ (`MB_TOPMOST`) still bei Fenstern eines
+      Hintergrundprozesses. Am 14.10.2026 lag die Frage deshalb hinter Martins Fenstern.
   - Annahme: nur Pakete gekoppelter Geräte, mit Sendezeit innerhalb von 2 Minuten und steigenden Folgenummern.
   - Puffer: Ziel 40 ms. Über 150 ms Rückstand kürzt er auf das Ziel; läuft er leer, baut er neu auf.
   - Ausgabe: Er spielt in die Wiedergabeseite von „Steam Streaming Microphone“ (WASAPI mit Formatwandlung).

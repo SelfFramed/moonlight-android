@@ -102,6 +102,12 @@ Aktueller Stand und Offenes: `docs/selfframed/ROADMAP.md` (Abschnitt „Stand“
 - Port 8765 ist von einem anderen Dienst belegt; Testserver laufen auf 47911.
 - Das Sunshine-Log wirkt im Explorer leer (0 Byte, weil geöffnet): `tools/sf/diag/sunshine-log.ps1` liest es.
 - adb immer mit `-s emulator-5554`; nie Martins Telefon ansprechen ohne Zustimmung.
+- `Start-Process -ArgumentList` setzt keine Anführungszeichen: Argumente mit Leerzeichen werden getrennt. Selbst mit
+  `'"a b"'` quoten, oder aus Python per `subprocess.run([...])` starten.
+- Fenster aus Hintergrundprozessen (Autostart, pythonw): Windows ignoriert `MB_TOPMOST` still, und Meldungsfenster
+  landen hinter den offenen Fenstern. Für Fragen an Martin ein eigenes Fenster mit `-topmost` nehmen, das sich
+  regelmäßig nach oben legt (`tools/sf/mic/confirm_dialog.py`). Sichtbarkeit prüfen über die Z-Reihenfolge
+  (EnumWindows), nicht über „visible“.
 
 ## Arbeitsweise mit Martin
 

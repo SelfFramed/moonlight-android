@@ -17,6 +17,9 @@ Mikrofon in jeder Anwendung auswählen).
 - Kennt der PC das Telefon nicht mehr, koppelt das nächste M neu.
 - Einstellungen: „Mikrofon zum PC“ zeigt die Kopplungen und löscht sie auf Wunsch (statt „Mikrofon-Kopplungscode“).
 - Protokoll Version 2 (Geräte-ID im Paketkopf); der PC-Empfänger ist aktualisiert und hat die alte Code-Datei gelöscht.
+- Nachtrag am selben Tag, nur am PC: Die Kopplungsfrage war am Gerät unsichtbar (sie lag hinter den offenen Fenstern).
+  Sie kommt jetzt als eigenes großes Fenster, immer oben und mittig, und lässt sich nur per Klick zulassen. Die App
+  bleibt unverändert.
 
 ## 12.2-sf.5 (13.10.2026)
 

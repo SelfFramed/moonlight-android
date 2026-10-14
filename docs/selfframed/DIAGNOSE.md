@@ -74,8 +74,9 @@ Ursache damals war Upstreams Audiopuffer (`ARCHITEKTUR.md` §5b), behoben in 12.
    - „rejected … damaged or forged“: Das Paket war beschädigt oder gefälscht.
    - „clock difference or replay“: Die Uhrzeiten von Telefon und PC weichen um mehr als 2 Minuten ab.
    - Nichts davon: Der Empfänger läuft nicht. Starten mit `tools\sf\mic\install-autostart.ps1 -StartNow`.
-2. **Kopplung hängt bei „Am PC bestätigen“:** Der Dialog ist eventuell hinter einem Vollbildfenster. Alt+Tab oder die
-   Taskleiste („SelfFramed: Mikrofon koppeln“).
+2. **Kopplung hängt bei „Am PC bestätigen“:** Das Fenster „SelfFramed: Mikrofon koppeln“ liegt immer oben und mittig.
+   Fehlt es, steht im Log „pairing request“ ohne Fenster? Dann `confirm_dialog.py` von Hand testen
+   (`pythonw tools\sf\mic\confirm_dialog.py --code "000 000" --timeout 6 --test`).
 3. **Hört die Anwendung etwas?** Sie sollte auf „Standard“ stehen; solange das Mikrofon an ist, ist es dann das
    Steam-Mikrofon.
    - Messen: `python tools/sf/mic/measure-virtual-mic.py`.
